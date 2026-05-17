@@ -82,12 +82,12 @@ export default function DiamondRingAnimation() {
       prevWidthRef.current = currentWidth
 
       if (isMobile) {
-        // Taller portrait card for mobile, filling more space
-        const targetWidth = window.innerWidth * 0.9;
-        const targetHeight = window.innerHeight * 0.55;
-        const w = Math.min(targetWidth, targetHeight * 0.75); // ~3:4 aspect ratio
-        canvas.width = Math.round(w);
-        canvas.height = Math.round(w / 0.75);
+        // Taller 3:4 portrait canvas for mobile to feel large and filled, matching ProductShowcase
+        const targetWidth = window.innerWidth * 0.9
+        const targetHeight = window.innerHeight * 0.55
+        const w = Math.min(targetWidth, targetHeight * 0.75) // ~3:4 aspect ratio
+        canvas.width = Math.round(w)
+        canvas.height = Math.round(w / 0.75)
       } else {
         canvas.height = Math.round(window.innerHeight * 0.85)
         canvas.width  = Math.round(canvas.height * 0.70)
@@ -113,15 +113,28 @@ export default function DiamondRingAnimation() {
       ScrollTrigger.create({
         trigger: sectionRef.current,
         start: 'top top',
-        end: `+=${window.innerHeight * 2}`,
+        end: `+=${window.innerHeight * (isMobile ? 1.5 : 2)}`,
         pin: true,
-        scrub: isMobile ? 0.1 : 0.4,
+        scrub: isMobile ? 0.2 : 0.4,
         anticipatePin: 1,
         onUpdate: (self) => {
           const maxFrames = isMobile ? Math.round(TOTAL_FRAMES / 2) : TOTAL_FRAMES
           const index = Math.round(self.progress * (maxFrames - 1))
           currentFrameRef.current = index
           drawFrame(index)
+
+          // Subtle Focus Transition
+          let opacity = 1
+          let blur = 0
+          if (self.progress < 0.05) {
+            opacity = 0.7 + (self.progress / 0.05) * 0.3
+            blur = 4 * (1 - self.progress / 0.05)
+          }
+
+          const content = sectionRef.current?.querySelector('.cinematic-content') as HTMLElement
+          if (content) {
+            gsap.set(content, { opacity, filter: `blur(${blur}px)` })
+          }
 
           if (!isMobile) {
             const textBlock = sectionRef.current?.querySelector('.parallax-text') as HTMLElement
@@ -142,11 +155,13 @@ export default function DiamondRingAnimation() {
     <section
       ref={sectionRef}
       className="relative w-full h-screen overflow-hidden"
-      style={{ backgroundColor: '#e2ceb9' }} // Matches the image's dominant stone color
+      style={{ backgroundColor: '#e0d6cb' }} // Matches the image's dominant stone color & Gold Dome section
     >
       <div 
         className="cinematic-content w-full h-full"
         style={{ 
+          opacity: 0.7, 
+          filter: 'blur(4px)',
           willChange: 'transform, opacity', 
           backfaceVisibility: 'hidden' 
         }}
@@ -155,17 +170,17 @@ export default function DiamondRingAnimation() {
         <div className="absolute inset-x-0 top-0 h-px bg-black/5" />
         <div className="absolute inset-x-0 bottom-0 h-px bg-black/5" />
 
-        {/* Two-column — stacks on mobile */}
+        {/* Two-column — stacks on mobile with perfect spacing */}
         <div className="absolute inset-0 flex flex-col md:flex-row items-center justify-center md:justify-start pt-8 pb-12 md:py-0 gap-6 md:gap-0">
 
-          {/* CANVAS BLOCK — Now stacks on mobile */}
-          <div className="flex items-center justify-center flex-1 w-full order-1 md:h-full min-h-[50vh] md:min-h-0">
+          {/* CANVAS BLOCK — Now stacks on mobile, taking up consistent height */}
+          <div className="flex items-center justify-center flex-1 w-full order-1 min-h-[50vh] md:min-h-0 md:h-full">
             <div
               style={{
                 position: 'relative',
                 height: '100%',
                 width: '100%',
-                maxWidth: '95vw',
+                maxWidth: '85vw',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center'
@@ -188,7 +203,7 @@ export default function DiamondRingAnimation() {
             </div>
           </div>
 
-          {/* TEXT BLOCK — Now stacks on mobile */}
+          {/* TEXT BLOCK — Now stacks on mobile with safe spacing */}
           <div
             className="parallax-text flex flex-col justify-center gap-3 md:gap-6 px-6 md:pr-20 lg:pr-32 order-2 md:order-2 w-full md:w-[42%] max-w-[500px] shrink-0"
           >
@@ -214,8 +229,8 @@ export default function DiamondRingAnimation() {
             {/* Description */}
             <div className="space-y-4">
               <p
-                className="text-[13px] leading-relaxed font-body text-center md:text-left mx-auto md:mx-0 max-w-[320px]"
-                style={{ color: 'rgba(26,20,16,0.7)' }}
+                className="text-[12px] md:text-[13px] leading-relaxed font-body text-center md:text-left"
+                style={{ color: 'rgba(26,20,16,0.5)', maxWidth: 300, margin: '0 auto' }}
               >
                 A brilliant-cut diamond of exceptional clarity, set in a meticulously hand-crafted 18k yellow gold band. A promise made for eternity.
               </p>

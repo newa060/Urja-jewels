@@ -47,7 +47,7 @@ export default function HomeClient({ heroQuote, featuredProducts }: HomeClientPr
       <LoadingScreen progress={loadProgress} onComplete={handleScreenComplete} />
 
       <PageTransition>
-      <main className="bg-obsidian min-h-screen overflow-x-hidden">
+      <main className="bg-ivory min-h-screen overflow-x-hidden">
           <HeroCanvas
             onLoadProgress={handleLoadProgress}
             onLoadComplete={handleLoadComplete}

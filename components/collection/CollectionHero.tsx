@@ -11,6 +11,7 @@
 
 import { motion } from 'framer-motion'
 import { fadeUp } from '@/lib/animations'
+import MobileBackButton from '@/components/product/MobileBackButton'
 
 interface CollectionHeroProps {
   /** Primary heading rendered in Cormorant Garamond. */
@@ -22,6 +23,9 @@ interface CollectionHeroProps {
 export default function CollectionHero({ title, subtitle }: CollectionHeroProps) {
   return (
     <section className="bg-ivory pt-32 pb-16 px-8 text-center">
+      <div className="max-w-6xl mx-auto text-left mb-4">
+        <MobileBackButton />
+      </div>
       <motion.div
         variants={fadeUp}
         initial="hidden"
