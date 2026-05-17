@@ -32,8 +32,10 @@ export function useFrameAnimation(
         loaded++
         setProgress(loaded / totalFrames)
         
-        // Mark as ready if we have the minimum frames needed for initial display
-        if (loaded >= minimumFrames) {
+        // Mark as ready if at least 95% of frames are fully loaded and cached in RAM.
+        // This ensures the animation has all its frames ready for buttery-smooth playback from the start.
+        const requiredFrames = Math.max(1, Math.round(totalFrames * 0.95))
+        if (loaded >= requiredFrames) {
           setReady(true)
         }
       }

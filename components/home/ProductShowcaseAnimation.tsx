@@ -57,6 +57,11 @@ export default function ProductShowcaseAnimation() {
       if (!canvas || !img) return
       const ctx = canvas.getContext('2d')
       if (!ctx) return
+      
+      // Ensure high quality image scaling
+      ctx.imageSmoothingEnabled = true
+      ctx.imageSmoothingQuality = 'high'
+
       const { width: cw, height: ch } = canvas
       const { naturalWidth: iw, naturalHeight: ih } = img
       if (!iw || !ih) return
