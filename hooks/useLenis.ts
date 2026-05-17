@@ -20,6 +20,13 @@ export function useLenis(): React.MutableRefObject<Lenis | null> {
   const lenisRef = useRef<Lenis | null>(null)
 
   useEffect(() => {
+    // Bypass Lenis on mobile/touch screens to restore native, hardware-accelerated momentum scrolling.
+    const isTouch = window.matchMedia('(pointer: coarse)').matches
+    const isMobileUA = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)
+    if (isTouch || isMobileUA) {
+      return
+    }
+
     const lenis = new Lenis({
       duration: 1.2,
       easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),

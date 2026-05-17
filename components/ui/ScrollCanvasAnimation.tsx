@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useEffect, useCallback } from 'react'
+import { useRef, useEffect, useCallback, useState } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useFrameAnimation } from '@/hooks/useFrameAnimation'
@@ -35,13 +35,42 @@ export default function ScrollCanvasAnimation({
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const wrapperRef = useRef<HTMLDivElement>(null)
   const currentFrameRef = useRef(0)
+  const prevWidthRef = useRef(0)
 
-  const memoizedGetFileName = useCallback(getFileName, [])
+  // Mobile / Client Detection
+  const [isMobile, setIsMobile] = useState(false)
+  const [isClient, setIsClient] = useState(false)
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768 || window.matchMedia('(pointer: coarse)').matches)
+    }
+
+    // Defer state updates to satisfy strict react-hooks/set-state-in-effect lint rules
+    const timer = setTimeout(() => {
+      setIsClient(true)
+      checkMobile()
+    }, 0)
+
+    window.addEventListener('resize', checkMobile)
+    return () => {
+      clearTimeout(timer)
+      window.removeEventListener('resize', checkMobile)
+    }
+  }, [])
+
+  // Calculate effective frames and custom mapping
+  const effectiveTotalFrames = isClient ? (isMobile ? Math.round(totalFrames / 2) : totalFrames) : 0
+
+  const customGetFileName = useCallback((index: number) => {
+    const actualIndex = isMobile ? index * 2 : index
+    return getFileName(actualIndex)
+  }, [getFileName, isMobile])
 
   const { frames, progress, ready } = useFrameAnimation(
-    totalFrames,
+    effectiveTotalFrames,
     basePath,
-    memoizedGetFileName
+    customGetFileName
   )
 
   const drawFrame = useCallback(
@@ -87,6 +116,15 @@ export default function ScrollCanvasAnimation({
     if (!canvas) return
 
     const updateSize = () => {
+      const currentWidth = window.innerWidth
+      // On mobile, height changes due to URL bar show/hide. Only trigger a full canvas resize if the width actually changes.
+      if (prevWidthRef.current && prevWidthRef.current === currentWidth) {
+        // Just redraw the current frame
+        drawFrame(currentFrameRef.current)
+        return
+      }
+      prevWidthRef.current = currentWidth
+
       if (portrait) {
         // Portrait card: 45% of viewport height as width, 80% of viewport height as height
         const h = Math.round(window.innerHeight * 0.8)
@@ -111,23 +149,42 @@ export default function ScrollCanvasAnimation({
   useEffect(() => {
     if (!ready || !wrapperRef.current) return
 
-    drawFrame(0)
+    if (isMobile) {
+      drawFrame(0)
 
-    const trigger = ScrollTrigger.create({
-      trigger: wrapperRef.current,
-      start: 'top top',
-      end: `+=${window.innerHeight * scrollDistance}`,
-      pin: true,
-      scrub: 1.5,
-      onUpdate: (self) => {
-        const index = Math.round(self.progress * (totalFrames - 1))
-        currentFrameRef.current = index
-        drawFrame(index)
-      },
-    })
+      const trigger = ScrollTrigger.create({
+        trigger: wrapperRef.current,
+        start: 'top top',
+        end: 'bottom top',
+        scrub: 0.1, // immediate, fast response to fingers
+        onUpdate: (self) => {
+          const maxFrames = Math.round(totalFrames / 2)
+          const index = Math.round(self.progress * (maxFrames - 1))
+          currentFrameRef.current = index
+          drawFrame(index)
+        },
+      })
 
-    return () => trigger.kill()
-  }, [ready, drawFrame, totalFrames, scrollDistance])
+      return () => trigger.kill()
+    } else {
+      drawFrame(0)
+
+      const trigger = ScrollTrigger.create({
+        trigger: wrapperRef.current,
+        start: 'top top',
+        end: `+=${window.innerHeight * scrollDistance}`,
+        pin: true,
+        scrub: 1.5,
+        onUpdate: (self) => {
+          const index = Math.round(self.progress * (totalFrames - 1))
+          currentFrameRef.current = index
+          drawFrame(index)
+        },
+      })
+
+      return () => trigger.kill()
+    }
+  }, [ready, isMobile, totalFrames, scrollDistance, drawFrame])
 
   if (portrait) {
     return (

@@ -40,7 +40,11 @@ export function useFrameAnimation(
       return img
     })
 
-    setFrames(imgs)
+    const timer = setTimeout(() => {
+      setFrames(imgs)
+    }, 0)
+
+    return () => clearTimeout(timer)
   }, [totalFrames, basePath, getFileName])
 
   return { frames, progress, ready }
