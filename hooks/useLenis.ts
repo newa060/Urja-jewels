@@ -28,8 +28,9 @@ export function useLenis(): React.MutableRefObject<Lenis | null> {
     }
 
     const lenis = new Lenis({
-      duration: 1.2,
-      easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      lerp: 0.1, // Smoother, more consistent interpolation
+      smoothWheel: true,
+      syncTouch: true,
     })
     lenisRef.current = lenis
 

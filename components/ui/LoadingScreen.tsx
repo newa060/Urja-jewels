@@ -9,7 +9,7 @@ interface LoadingScreenProps {
 }
 
 export default function LoadingScreen({ progress, onComplete }: LoadingScreenProps) {
-  const isComplete = progress >= 1
+  const isComplete = progress >= 0.9 // Let them in early for a "fast" feel
 
   return (
     <AnimatePresence onExitComplete={onComplete}>

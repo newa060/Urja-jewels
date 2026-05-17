@@ -149,41 +149,41 @@ export default function ScrollCanvasAnimation({
   useEffect(() => {
     if (!ready || !wrapperRef.current) return
 
-    if (isMobile) {
+    // Scoped GSAP context to prevent 'removeChild' errors
+    const ctx = gsap.context(() => {
       drawFrame(0)
 
-      const trigger = ScrollTrigger.create({
-        trigger: wrapperRef.current,
-        start: 'top top',
-        end: 'bottom top',
-        scrub: 0.1, // immediate, fast response to fingers
-        onUpdate: (self) => {
-          const maxFrames = Math.round(totalFrames / 2)
-          const index = Math.round(self.progress * (maxFrames - 1))
-          currentFrameRef.current = index
-          drawFrame(index)
-        },
-      })
+      if (isMobile) {
+        ScrollTrigger.create({
+          trigger: wrapperRef.current,
+          start: 'top top',
+          end: 'bottom top',
+          scrub: 0.1, // immediate, fast response to fingers
+          onUpdate: (self) => {
+            const maxFrames = Math.round(totalFrames / 2)
+            const index = Math.round(self.progress * (maxFrames - 1))
+            currentFrameRef.current = index
+            drawFrame(index)
+          },
+        })
+      } else {
+        ScrollTrigger.create({
+          trigger: wrapperRef.current,
+          start: 'top top',
+          end: `+=${window.innerHeight * scrollDistance}`,
+          pin: true,
+          scrub: 0.6, // Bishal optimized to 0.6 on desktop for snappier feel
+          anticipatePin: 1,
+          onUpdate: (self) => {
+            const index = Math.round(self.progress * (totalFrames - 1))
+            currentFrameRef.current = index
+            drawFrame(index)
+          },
+        })
+      }
+    }, wrapperRef)
 
-      return () => trigger.kill()
-    } else {
-      drawFrame(0)
-
-      const trigger = ScrollTrigger.create({
-        trigger: wrapperRef.current,
-        start: 'top top',
-        end: `+=${window.innerHeight * scrollDistance}`,
-        pin: true,
-        scrub: 1.5,
-        onUpdate: (self) => {
-          const index = Math.round(self.progress * (totalFrames - 1))
-          currentFrameRef.current = index
-          drawFrame(index)
-        },
-      })
-
-      return () => trigger.kill()
-    }
+    return () => ctx.revert()
   }, [ready, isMobile, totalFrames, scrollDistance, drawFrame])
 
   if (portrait) {
@@ -193,13 +193,10 @@ export default function ScrollCanvasAnimation({
         {/* Subtle background behind the portrait card */}
         <div className="absolute inset-0 bg-[#0a0805]" />
 
-        {/* Portrait card — shadow + subtle border for depth */}
+        {/* Portrait card — responsive sizing for mobile */}
         <div
-          className="relative z-10 flex items-center justify-center"
+          className="relative z-10 flex items-center justify-center h-[65vh] md:h-[80vh] aspect-[2/3] max-w-[90vw]"
           style={{
-            height: '80vh',
-            width: 'calc(80vh * 0.65)',
-            maxWidth: '90vw',
             boxShadow: '0 32px 96px rgba(0,0,0,0.85), 0 0 0 1px rgba(212,175,55,0.15)',
             borderRadius: '4px',
           }}

@@ -40,25 +40,25 @@ export default function HeroOverlay() {
         </div>
 
         {/* Main Headings */}
-        <div className="max-w-5xl space-y-4 mb-14">
-          <h1 className="font-display text-6xl md:text-[110px] text-ivory tracking-tight leading-[0.9]">
+        <div className="max-w-5xl space-y-3 md:space-y-4 mb-10 md:mb-14">
+          <h1 className="font-display text-4xl sm:text-5xl md:text-[110px] text-ivory tracking-tight leading-[1.1] md:leading-[0.9]">
             Where Gold Meets <span className="italic text-gold font-light opacity-90">Grace</span>
           </h1>
-          <p className="font-display text-2xl md:text-5xl text-ivory/90 tracking-wide font-light">
+          <p className="font-display text-lg sm:text-2xl md:text-5xl text-ivory/90 tracking-wide font-light">
             Crafted for the Timeless Woman
           </p>
         </div>
 
         {/* Center Ornament */}
-        <div className="flex items-center gap-8 mb-14">
-          <div className="h-[1px] w-24 bg-stone-500/20" />
+        <div className="flex items-center gap-4 md:gap-8 mb-10 md:mb-14">
+          <div className="h-[1px] w-12 md:w-24 bg-stone-500/20" />
           <div className="w-1.5 h-1.5 rotate-45 bg-gold/50" />
-          <div className="h-[1px] w-24 bg-stone-500/20" />
+          <div className="h-[1px] w-12 md:w-24 bg-stone-500/20" />
         </div>
 
         {/* Footer Subtext */}
-        <div className="mb-14">
-           <p className="font-body text-[10px] md:text-xs uppercase tracking-[0.4em] text-stone-400/80 font-light">
+        <div className="mb-10 md:mb-14">
+           <p className="font-body text-[9px] md:text-xs uppercase tracking-[0.3em] md:tracking-[0.4em] text-stone-400/80 font-light">
              Handcrafted Fine Jewellery &middot; Since 2010
            </p>
         </div>

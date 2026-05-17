@@ -30,6 +30,7 @@ export default function FeaturedCollection({ products }: FeaturedCollectionProps
             <ProductCard
               key={product.id}
               product={product}
+              priority={index < 2}
               className={`col-span-1 ${COL_SPANS[index % COL_SPANS.length]}`}
             />
           ))}

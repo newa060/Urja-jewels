@@ -35,6 +35,11 @@ export default function HomeClient({ heroQuote, featuredProducts }: HomeClientPr
 
   const handleScreenComplete = useCallback(() => {
     setLoadComplete(true)
+    // Force a refresh and normalize scroll to stop vibration
+    import('gsap/ScrollTrigger').then(({ ScrollTrigger }) => {
+      ScrollTrigger.normalizeScroll(true)
+      ScrollTrigger.refresh()
+    })
   }, [])
 
   return (
@@ -42,47 +47,29 @@ export default function HomeClient({ heroQuote, featuredProducts }: HomeClientPr
       <LoadingScreen progress={loadProgress} onComplete={handleScreenComplete} />
 
       <PageTransition>
-        <HeroCanvas
-          onLoadProgress={handleLoadProgress}
-          onLoadComplete={handleLoadComplete}
-        />
+      <main className="bg-obsidian min-h-screen overflow-x-hidden">
+          <HeroCanvas
+            onLoadProgress={handleLoadProgress}
+            onLoadComplete={handleLoadComplete}
+          />
 
-        <MarqueeTicker items={MARQUEE_TAGS} />
+          <MarqueeTicker items={MARQUEE_TAGS} />
 
-        <FeaturedCollection products={featuredProducts} />
+          <FeaturedCollection products={featuredProducts} />
 
-        {/* ── Transition bridge: ivory → dark ── */}
-        <div
-          style={{
-            background: 'linear-gradient(to bottom, #f9f5f0 0%, #1a1714 100%)',
-            height: '220px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexDirection: 'column',
-            gap: '12px',
-          }}
-        >
-          <div style={{ width: '1px', height: '48px', background: 'linear-gradient(to bottom, rgba(180,150,80,0.3), rgba(212,175,55,0.7))' }} />
-          <p style={{ fontSize: '10px', letterSpacing: '0.4em', textTransform: 'uppercase', color: 'rgba(212,175,55,0.6)' }}>
-            Explore the Craft
-          </p>
-        </div>
+          <ProductShowcaseAnimation />
 
-        <ProductShowcaseAnimation />
+          <DiamondRingAnimation />
 
+          <ParallaxQuote
+            quote={heroQuote.quote}
+            author={heroQuote.author}
+            imageSrc={heroQuote.imageSrc}
+            imageAlt="Luxury jewelry atelier"
+          />
 
-        <DiamondRingAnimation />
-
-        <ParallaxQuote
-          quote={heroQuote.quote}
-          author={heroQuote.author}
-          imageSrc={heroQuote.imageSrc}
-          imageAlt="Luxury jewelry atelier"
-        />
-
-
-        <Newsletter />
+          <Newsletter />
+        </main>
       </PageTransition>
     </>
   )

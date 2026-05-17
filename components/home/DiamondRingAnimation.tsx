@@ -102,6 +102,7 @@ export default function DiamondRingAnimation() {
   /* ── GSAP scroll trigger ──────────────────────────────────────────── */
   useEffect(() => {
     if (!ready || !sectionRef.current) return
+<<<<<<< HEAD
 
     if (isMobile) {
       drawFrame(0)
@@ -123,121 +124,81 @@ export default function DiamondRingAnimation() {
     } else {
       drawFrame(0)
 
-      const trigger = ScrollTrigger.create({
-        trigger: sectionRef.current,
-        start:   'top top',
-        end:     `+=${window.innerHeight * 3}`,
-        pin:     true,
-        scrub:   0.6,
-        onUpdate: (self) => {
-          const index = Math.round(self.progress * (TOTAL_FRAMES - 1))
-          currentFrameRef.current = index
-          drawFrame(index)
-        },
-      })
+    
+    // Scoped GSAP context to prevent 'removeChild' errors on unmount/reload
+    const ctx = gsap.context(() => {
+      drawFrame(0)
+      ScrollTrigger.refresh()
 
-      return () => trigger.kill()
-    }
-  }, [ready, isMobile, TOTAL_FRAMES, drawFrame])
+      if (isMobile) {
+        ScrollTrigger.create({
+          trigger: sectionRef.current,
+          start: 'top bottom',
+          end: 'bottom top',
+          scrub: 0.1, // immediate, fast response to finger scrolls
+          onUpdate: (self) => {
+            const maxFrames = Math.round(TOTAL_FRAMES / 2)
+            const index = Math.round(self.progress * (maxFrames - 1))
+            currentFrameRef.current = index
+            drawFrame(index)
 
-  // Responsive UI Render
-  if (isMobile) {
-    return (
-      <section
-        ref={sectionRef}
-        className="relative w-full min-h-screen py-12 px-6 flex flex-col justify-between items-center gap-8 text-center"
-        style={{ backgroundColor: '#e2ceb9' }}
-      >
-        {/* Hairlines */}
-        <div className="absolute inset-x-0 top-0 h-px bg-black/10" />
-        <div className="absolute inset-x-0 bottom-0 h-px bg-black/10" />
+            // Subtle focus entrance/exit transition as mobile scrolls
+            let opacity = 1
+            let blur = 0
+            if (self.progress < 0.2) {
+              opacity = 0.7 + (self.progress / 0.2) * 0.3
+              blur = 4 * (1 - self.progress / 0.2)
+            } else if (self.progress > 0.8) {
+              opacity = 0.7 + ((1 - self.progress) / 0.2) * 0.3
+              blur = 4 * (1 - (1 - self.progress) / 0.2)
+            }
 
-        {/* Header Title */}
-        <div className="flex flex-col items-center gap-3 mt-6">
-          <p
-            className="text-[10px] uppercase tracking-[0.35em]"
-            style={{ color: 'rgba(160,120,40,0.8)' }}
-          >
-            Signature Collection
-          </p>
-          <div className="w-8 h-px bg-black/15" />
-          <h2
-            className="text-4xl font-extralight leading-tight tracking-tight text-[#1a1410]"
-            style={{ fontFamily: 'Georgia, serif' }}
-          >
-            Yellow Gold Diamond Engagement Ring
-          </h2>
-        </div>
+            const content = sectionRef.current?.querySelector('.cinematic-content') as HTMLElement
+            if (content) {
+              gsap.set(content, { opacity, filter: `blur(${blur}px)` })
+            }
+          },
+        })
+      } else {
+        ScrollTrigger.create({
+          trigger: sectionRef.current,
+          start:   'top top',
+          end:     `+=${window.innerHeight * 2}`,
+          pin:     true,
+          scrub:   0.4,
+          anticipatePin: 1,
+          onUpdate: (self) => {
+            const index = Math.round(self.progress * (TOTAL_FRAMES - 1))
+            currentFrameRef.current = index
+            drawFrame(index)
 
-        {/* Canvas Center */}
-        <div className="relative flex items-center justify-center w-full max-h-[50vh]">
-          <div
-            style={{
-              position: 'relative',
-              width: 'min(85vw, 50vh * 0.7)',
-              height: 'calc(min(85vw, 50vh * 0.7) / 0.7)',
-              maxWidth: '280px',
-              maxHeight: '400px',
-            }}
-          >
-            <div
-              style={{
-                position: 'absolute',
-                inset: '-6%',
-                background: 'radial-gradient(ellipse at 50% 55%, rgba(212,175,55,0.12) 0%, transparent 70%)',
-                pointerEvents: 'none',
-              }}
-            />
-            <canvas
-              ref={canvasRef}
-              aria-label="Yellow Gold Diamond Engagement Ring — 360° auto-rotation"
-              style={{
-                display: 'block',
-                width: '100%',
-                height: '100%',
-                objectFit: 'contain',
-              }}
-            />
-          </div>
-        </div>
+            // Subtle Focus Transition
+            let opacity = 1
+            let blur = 0
+            if (self.progress < 0.05) {
+              opacity = 0.7 + (self.progress / 0.05) * 0.3
+              blur = 4 * (1 - self.progress / 0.05)
+            }
 
-        {/* Footer copy */}
-        <div className="flex flex-col items-center gap-4 mb-6">
-          <p className="text-xs leading-relaxed max-w-xs text-black/60">
-            A brilliant-cut diamond set in warm 18k yellow gold.<br />
-            Crafted to mark life&apos;s most precious moment — forever yours.
-          </p>
-          <div className="w-8 h-px bg-black/15" />
-          <div className="flex items-center gap-3">
-            <span
-              className="text-[9px] uppercase tracking-[0.3em]"
-              style={{ color: 'rgba(160,120,40,0.6)' }}
-            >
-              Scroll to explore
-            </span>
-            <svg
-              width="12" height="12" viewBox="0 0 16 16" fill="none"
-              className="opacity-50 animate-bounce"
-            >
-              <path
-                d="M4 6l4 4 4-4"
-                stroke="#A07828"
-                strokeWidth="1.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </div>
-        </div>
+            const content = sectionRef.current?.querySelector('.cinematic-content') as HTMLElement
+            const textBlock = sectionRef.current?.querySelector('.parallax-text') as HTMLElement
+            
+            if (content) {
+              gsap.set(content, { opacity, filter: `blur(${blur}px)` })
+            }
+            if (textBlock) {
+              gsap.set(textBlock, { y: (self.progress - 0.5) * -60 })
+            }
+          },
+        })
+      }
+      
+      ScrollTrigger.refresh()
+    }, sectionRef)
 
-        <div
-          className="text-[9px] tracking-[0.25em] text-[#1a1410]/30 absolute bottom-4"
-        >
-          Yellow Gold Diamond — Urja Jewels
-        </div>
-      </section>
-    )
-  }
+    return () => ctx.revert() // Cleanly removes all pins and animations
+  }, [ready, drawFrame])
+>>>>>>> 104fc4e1b24fe32d24bebb461ae61a505d7c120e
 
   return (
     <section
@@ -245,31 +206,35 @@ export default function DiamondRingAnimation() {
       className="relative w-full h-screen overflow-hidden"
       style={{ backgroundColor: '#e2ceb9' }} // Matches the image's dominant stone color
     >
-      {/* Hairlines */}
-      <div className="absolute inset-x-0 top-0 h-px bg-black/10" />
-      <div className="absolute inset-x-0 bottom-0 h-px bg-black/10" />
+      <div 
+        className="cinematic-content w-full h-full"
+        style={{ 
+          opacity: 0.7, 
+          filter: 'blur(4px)',
+          willChange: 'transform, opacity', 
+          backfaceVisibility: 'hidden' 
+        }}
+      >
+        {/* Hairlines */}
+        <div className="absolute inset-x-0 top-0 h-px bg-black/5" />
+        <div className="absolute inset-x-0 bottom-0 h-px bg-black/5" />
 
-      {/* Two-column — image LEFT, text RIGHT (mirrored from Gold Dome) */}
-      <div className="absolute inset-0 flex items-center">
+        {/* Two-column — stacks on mobile */}
+        <div className="absolute inset-0 flex flex-col md:flex-row items-center justify-center md:justify-start pt-16 md:pt-0">
 
-        {/* LEFT — portrait canvas */}
-        <div className="flex items-center justify-center flex-1 h-full">
-          <div
-            style={{
-              position: 'relative',
-              height: '85vh',
-              width: 'calc(85vh * 0.70)',
-              maxWidth: '55vw',
-            }}
-          >
-            {/* Warm gold ambient glow */}
+          {/* CANVAS BLOCK — Now stacks on mobile */}
+          <div className="flex items-center justify-center flex-1 w-full order-1 h-[45vh] md:h-full">
             <div
               style={{
-                position: 'absolute',
-                inset: '-4%',
-                background: 'radial-gradient(ellipse at 50% 55%, rgba(212,175,55,0.12) 0%, transparent 70%)',
-                pointerEvents: 'none',
+                position: 'relative',
+                height: '100%',
+                width: '100%',
+                maxWidth: '85vw',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
               }}
+<<<<<<< HEAD
             />
             <canvas
               ref={canvasRef}
@@ -323,25 +288,72 @@ export default function DiamondRingAnimation() {
             <span
               className="text-[10px] uppercase tracking-[0.3em]"
               style={{ color: 'rgba(160,120,40,0.55)' }}
+=======
+>>>>>>> 104fc4e1b24fe32d24bebb461ae61a505d7c120e
             >
-              Scroll to explore
-            </span>
-            <svg
-              width="16" height="16" viewBox="0 0 16 16" fill="none"
-              className="opacity-50 animate-bounce"
-            >
-              <path
-                d="M4 6l4 4 4-4"
-                stroke="#A07828"
-                strokeWidth="1.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+              <canvas
+                ref={canvasRef}
+                aria-label="Diamond Engagement Ring — Cinematic View"
+                style={{ 
+                  display: 'block', 
+                  maxWidth: '100%',
+                  maxHeight: '100%',
+                  width: 'auto',
+                  height: 'auto',
+                  objectFit: 'contain',
+                  willChange: 'transform',
+                  backfaceVisibility: 'hidden'
+                }}
               />
-            </svg>
+            </div>
+          </div>
+
+          {/* TEXT BLOCK — Now stacks on mobile */}
+          <div
+            className="parallax-text flex flex-col justify-center gap-4 md:gap-6 px-8 md:pr-20 lg:pr-32 order-2 md:order-2 w-full md:w-[42%] max-w-[500px]"
+          >
+            {/* Label */}
+            <p
+              className="text-[9px] md:text-[10px] uppercase tracking-[0.5em] font-body text-center md:text-left"
+              style={{ color: 'rgba(160,120,40,0.7)' }}
+            >
+              Signature Atelier
+            </p>
+
+            {/* Product name */}
+            <h2
+              className="text-[clamp(2rem,6vw,4.5rem)] font-light leading-[1.05] tracking-tight text-center md:text-left"
+              style={{ color: '#1a1410', fontFamily: 'var(--font-cormorant)' }}
+            >
+              Yellow Gold<br />Diamond<br /><span className="italic">Engagement</span>
+            </h2>
+
+            {/* Hairline */}
+            <div className="w-12 h-px bg-gradient-to-r from-black/10 to-transparent mx-auto md:mx-0" />
+
+            {/* Description */}
+            <div className="space-y-4">
+              <p
+                className="text-[12px] md:text-[13px] leading-relaxed font-body text-center md:text-left"
+                style={{ color: 'rgba(26,20,16,0.5)', maxWidth: 300, margin: '0 auto' }}
+              >
+                A brilliant-cut diamond of exceptional clarity, set in a meticulously hand-crafted 18k yellow gold band. A promise made for eternity.
+              </p>
+            </div>
+
+            {/* Scroll hint */}
+            <div className="flex items-center justify-center md:justify-start gap-4 mt-2 md:mt-4">
+              <span
+                className="text-[9px] uppercase tracking-[0.4em] font-body"
+                style={{ color: 'rgba(160,120,40,0.5)' }}
+              >
+                Crafted to order
+              </span>
+              <div className="w-6 h-px bg-black/10" />
+            </div>
           </div>
         </div>
       </div>
-
       {/* Watermark */}
       <div
         className="absolute bottom-8 left-10 text-[10px] tracking-[0.25em] tabular-nums"

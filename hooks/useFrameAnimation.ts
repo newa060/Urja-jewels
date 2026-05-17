@@ -12,7 +12,8 @@ import type { FrameAnimationState } from '@/lib/constants'
 export function useFrameAnimation(
   totalFrames: number,
   basePath: string,
-  getFileName: (index: number) => string
+  getFileName: (index: number) => string,
+  minimumFrames: number = 15 // Minimum frames needed to show the page
 ): FrameAnimationState {
   const [frames, setFrames] = useState<HTMLImageElement[]>([])
   const [progress, setProgress] = useState(0)
@@ -20,32 +21,40 @@ export function useFrameAnimation(
 
   useEffect(() => {
     let loaded = 0
+    let isMounted = true
 
     const imgs = Array.from({ length: totalFrames }, (_, i) => {
       const img = new Image()
       img.src = `${basePath}/${getFileName(i)}`
 
-      img.onload = () => {
+      const handleLoad = () => {
+        if (!isMounted) return
         loaded++
         setProgress(loaded / totalFrames)
-        if (loaded === totalFrames) setReady(true)
+        
+        // Mark as ready if we have the minimum frames needed for initial display
+        if (loaded >= minimumFrames) {
+          setReady(true)
+        }
       }
 
-      img.onerror = () => {
-        loaded++
-        setProgress(loaded / totalFrames)
-        if (loaded === totalFrames) setReady(true)
-      }
+      img.onload = handleLoad
+      img.onerror = handleLoad // Count errors as "loaded" to prevent infinite hangs
 
       return img
     })
 
     const timer = setTimeout(() => {
-      setFrames(imgs)
+      if (isMounted) {
+        setFrames(imgs)
+      }
     }, 0)
 
-    return () => clearTimeout(timer)
-  }, [totalFrames, basePath, getFileName])
+    return () => {
+      isMounted = false
+      clearTimeout(timer)
+    }
+  }, [totalFrames, basePath, getFileName, minimumFrames])
 
   return { frames, progress, ready }
 }

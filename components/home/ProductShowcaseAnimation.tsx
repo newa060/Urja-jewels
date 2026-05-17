@@ -107,6 +107,7 @@ export default function ProductShowcaseAnimation() {
   /* ── GSAP scroll animation ────────────────────────────────────────── */
   useEffect(() => {
     if (!ready || !sectionRef.current) return
+<<<<<<< HEAD
 
     if (isMobile) {
       drawFrame(0)
@@ -129,113 +130,81 @@ export default function ProductShowcaseAnimation() {
       drawFrame(0)
 
       const trigger = ScrollTrigger.create({
-        trigger: sectionRef.current,
-        start: 'top top',
-        end: `+=${window.innerHeight * 3}`,
-        pin: true,
-        scrub: 0.6,
-        onUpdate: (self) => {
-          const index = Math.round(self.progress * (TOTAL_FRAMES - 1))
-          currentFrameRef.current = index
-          drawFrame(index)
-        },
-      })
 
-      return () => trigger.kill()
-    }
-  }, [ready, isMobile, TOTAL_FRAMES, drawFrame])
+    // Scoped GSAP context to prevent 'removeChild' errors on unmount/reload
+    const ctx = gsap.context(() => {
+      drawFrame(0)
+      ScrollTrigger.refresh()
 
-  // Responsive UI Render
-  if (isMobile) {
-    return (
-      <section
-        ref={sectionRef}
-        className="relative w-full min-h-screen bg-[#0d0c0b] py-12 px-6 flex flex-col justify-between items-center gap-8 text-center"
-      >
-        {/* Faint hairlines */}
-        <div className="absolute inset-x-0 top-0 h-px bg-white/10" />
-        <div className="absolute inset-x-0 bottom-0 h-px bg-white/10" />
+      if (isMobile) {
+        ScrollTrigger.create({
+          trigger: sectionRef.current,
+          start: 'top bottom',
+          end: 'bottom top',
+          scrub: 0.1, // immediate, fast response to finger scrolls
+          onUpdate: (self) => {
+            const maxFrames = Math.round(TOTAL_FRAMES / 2)
+            const index = Math.round(self.progress * (maxFrames - 1))
+            currentFrameRef.current = index
+            drawFrame(index)
 
-        {/* Header Title */}
-        <div className="flex flex-col items-center gap-3 mt-6">
-          <p
-            className="text-[10px] uppercase tracking-[0.35em]"
-            style={{ color: 'rgba(212,175,55,0.75)' }}
-          >
-            New Arrival
-          </p>
-          <div className="w-8 h-px bg-white/20" />
-          <h2
-            className="text-4xl font-extralight leading-tight tracking-tight text-white"
-            style={{ fontFamily: 'Georgia, serif' }}
-          >
-            Gold Dome Ring
-          </h2>
-        </div>
+            // Subtle focus entrance/exit transition as mobile scrolls
+            let opacity = 1
+            let blur = 0
+            if (self.progress < 0.2) {
+              opacity = 0.7 + (self.progress / 0.2) * 0.3
+              blur = 4 * (1 - self.progress / 0.2)
+            } else if (self.progress > 0.8) {
+              opacity = 0.7 + ((1 - self.progress) / 0.2) * 0.3
+              blur = 4 * (1 - (1 - self.progress) / 0.2)
+            }
 
-        {/* Canvas Center */}
-        <div className="relative flex items-center justify-center w-full max-h-[50vh]">
-          <div
-            style={{
-              position: 'relative',
-              width: 'min(85vw, 50vh * 0.7)',
-              height: 'calc(min(85vw, 50vh * 0.7) / 0.7)',
-              maxWidth: '280px',
-              maxHeight: '400px',
-            }}
-          >
-            <div
-              style={{
-                position: 'absolute',
-                inset: '-6%',
-                background: 'radial-gradient(ellipse at 50% 60%, rgba(212,175,55,0.07) 0%, transparent 70%)',
-                pointerEvents: 'none',
-              }}
-            />
-            <canvas
-              ref={canvasRef}
-              aria-label="Gold Dome Ring on stone — 360° auto-rotation"
-              style={{
-                display: 'block',
-                width: '100%',
-                height: '100%',
-                objectFit: 'contain',
-              }}
-            />
-          </div>
-        </div>
+            const content = sectionRef.current?.querySelector('.cinematic-content') as HTMLElement
+            if (content) {
+              gsap.set(content, { opacity, filter: `blur(${blur}px)` })
+            }
+          },
+        })
+      } else {
+        ScrollTrigger.create({
+          trigger: sectionRef.current,
+          start: 'top top',
+          end: `+=${window.innerHeight * 2}`,
+          pin: true,
+          scrub: 0.4,
+          anticipatePin: 1,
+          onUpdate: (self) => {
+            const index = Math.round(self.progress * (TOTAL_FRAMES - 1))
+            currentFrameRef.current = index
+            drawFrame(index)
 
-        {/* Footer copy */}
-        <div className="flex flex-col items-center gap-4 mb-6">
-          <p className="text-xs leading-relaxed max-w-xs text-white/50">
-            Hand-set on a natural stone surface.<br />
-            18k polished gold, sculpted by hand and refined by time.
-          </p>
-          <div className="w-8 h-px bg-white/20" />
-          <div className="flex items-center gap-3">
-             <span
-               className="text-[9px] uppercase tracking-[0.3em]"
-               style={{ color: 'rgba(212,175,55,0.5)' }}
-             >
-               Scroll to explore
-             </span>
-             <svg
-               width="12" height="12" viewBox="0 0 16 16" fill="none"
-               className="opacity-50 animate-bounce"
-             >
-               <path d="M4 6l4 4 4-4" stroke="#D4AF37" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
-             </svg>
-          </div>
-        </div>
+            // Subtle Focus Transition
+            let opacity = 1
+            let blur = 0
+            if (self.progress < 0.05) {
+              opacity = 0.7 + (self.progress / 0.05) * 0.3
+              blur = 4 * (1 - self.progress / 0.05)
+            }
 
-        <div
-          className="text-[9px] tracking-[0.25em] text-white/20 absolute bottom-4"
-        >
-          Gold Dome Ring — Urja Jewels
-        </div>
-      </section>
-    )
-  }
+            const content = sectionRef.current?.querySelector('.cinematic-content') as HTMLElement
+            const textBlock = sectionRef.current?.querySelector('.parallax-text') as HTMLElement
+            
+            if (content) {
+              gsap.set(content, { opacity, filter: `blur(${blur}px)` })
+            }
+            if (textBlock) {
+              gsap.set(textBlock, { y: (self.progress - 0.5) * -60 })
+            }
+          },
+        })
+      }
+      
+      ScrollTrigger.refresh()
+    }, sectionRef)
+
+    return () => ctx.revert() // Cleanly removes all pins and animations
+  }, [ready, drawFrame])
+>>>>>>> 104fc4e1b24fe32d24bebb461ae61a505d7c120e
 
   return (
     <section
@@ -243,104 +212,97 @@ export default function ProductShowcaseAnimation() {
       className="relative w-full h-screen overflow-hidden"
       style={{ backgroundColor: '#0d0c0b' }}
     >
-      {/* ── very faint top / bottom hairlines ── */}
-      <div className="absolute inset-x-0 top-0 h-px bg-white/10" />
-      <div className="absolute inset-x-0 bottom-0 h-px bg-white/10" />
+      <div 
+        className="cinematic-content w-full h-full"
+        style={{ 
+          opacity: 0.7, 
+          filter: 'blur(4px)',
+          willChange: 'transform, opacity', 
+          backfaceVisibility: 'hidden' 
+        }}
+      >
+        {/* ── faint top / bottom hairlines ── */}
+        <div className="absolute inset-x-0 top-0 h-px bg-white/5" />
+        <div className="absolute inset-x-0 bottom-0 h-px bg-white/5" />
 
-      {/* ── Two-column layout ── */}
-      <div className="absolute inset-0 flex items-center">
+        {/* ── Two-column layout ── */}
+        <div className="absolute inset-0 flex flex-col md:flex-row items-center justify-center md:justify-start pt-16 md:pt-0">
 
-        {/* LEFT — text block */}
-        <div
-          className="flex flex-col justify-center gap-5 pl-12 md:pl-20 lg:pl-28"
-          style={{ width: '38%', minWidth: 240 }}
-        >
-          {/* Label */}
-          <p
-            className="text-[10px] uppercase tracking-[0.35em]"
-            style={{ color: 'rgba(212,175,55,0.75)' }}
-          >
-            New Arrival
-          </p>
-
-          {/* Hairline */}
-          <div className="w-8 h-px bg-white/20" />
-
-          {/* Product name */}
-          <h2
-            className="text-[clamp(2rem,3.5vw,3.5rem)] font-extralight leading-[1.1] tracking-tight text-white"
-            style={{ fontFamily: 'Georgia, serif' }}
-          >
-            Gold Dome<br />Ring
-          </h2>
-
-          {/* Description */}
-          <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.38)', maxWidth: 280 }}>
-            Hand-set on a natural stone surface.
-            <br />
-            18k polished gold, sculpted by hand
-            <br />
-            and refined by time.
-          </p>
-
-          {/* Hairline */}
-          <div className="w-8 h-px bg-white/20" />
-
-          {/* Scroll hint */}
-          <div className="flex items-center gap-3">
-            <span
-              className="text-[10px] uppercase tracking-[0.3em]"
-              style={{ color: 'rgba(212,175,55,0.5)' }}
-            >
-              Scroll to explore
-            </span>
-            {/* animated chevron */}
-            <svg
-              width="16" height="16" viewBox="0 0 16 16" fill="none"
-              className="opacity-50 animate-bounce"
-            >
-              <path d="M4 6l4 4 4-4" stroke="#D4AF37" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </div>
-        </div>
-
-        {/* RIGHT — portrait canvas */}
-        <div
-          className="flex items-center justify-center flex-1 h-full"
-        >
-          {/* Outer glow / depth wrapper */}
+          {/* TEXT BLOCK — Now stacks on mobile */}
           <div
-            style={{
-              position: 'relative',
-              height: '85vh',
-              width: 'calc(85vh * 0.70)',
-              maxWidth: '55vw',
-            }}
+            className="parallax-text flex flex-col justify-center gap-4 md:gap-6 px-8 md:pl-20 lg:pl-32 order-2 md:order-1 w-full md:w-[42%] max-w-[500px]"
           >
-            {/* Subtle ambient glow behind the ring */}
+            {/* Label */}
+            <p
+              className="text-[9px] md:text-[10px] uppercase tracking-[0.5em] font-body text-center md:text-left"
+              style={{ color: 'rgba(212,175,55,0.7)' }}
+            >
+              The 2026 Collection
+            </p>
+
+            {/* Product name */}
+            <h2
+              className="text-[clamp(2rem,6vw,4.5rem)] font-light leading-[1.1] tracking-tight text-white text-center md:text-left"
+              style={{ fontFamily: 'var(--font-cormorant)' }}
+            >
+              Gold Dome<br /><span className="italic">Ring</span>
+            </h2>
+
+            {/* Hairline */}
+            <div className="w-12 h-px bg-gradient-to-r from-gold/40 to-transparent mx-auto md:mx-0" />
+
+            {/* Description */}
+            <div className="space-y-4">
+              <p className="text-[12px] md:text-[13px] leading-relaxed font-body text-center md:text-left" style={{ color: 'rgba(255,255,255,0.4)', maxWidth: 300, margin: '0 auto' }}>
+                A sculptural masterpiece hand-set on natural basalt stone. 18k polished gold, meticulously refined for a seamless silhouette.
+              </p>
+            </div>
+
+            {/* Scroll hint */}
+            <div className="flex items-center justify-center md:justify-start gap-4 mt-2 md:mt-4">
+              <span
+                className="text-[9px] uppercase tracking-[0.4em] font-body"
+                style={{ color: 'rgba(212,175,55,0.4)' }}
+              >
+                Rotate 360°
+              </span>
+              <div className="w-6 h-px bg-gold/20" />
+            </div>
+          </div>
+
+          {/* CANVAS BLOCK — Now stacks on mobile */}
+          <div
+            className="flex items-center justify-center flex-1 w-full order-1 md:order-2 h-[45vh] md:h-full"
+          >
             <div
               style={{
-                position: 'absolute',
-                inset: '-4%',
-                background: 'radial-gradient(ellipse at 50% 60%, rgba(212,175,55,0.07) 0%, transparent 70%)',
-                pointerEvents: 'none',
-              }}
-            />
-
-            <canvas
-              ref={canvasRef}
-              aria-label="Gold Dome Ring on stone — 360° scroll showcase"
-              style={{
-                display: 'block',
-                width: '100%',
+                position: 'relative',
                 height: '100%',
-                objectFit: 'contain',
+                width: '100%',
+                maxWidth: '85vw',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
               }}
-            />
+            >
+              <canvas
+                ref={canvasRef}
+                aria-label="Gold Dome Ring — Cinematic 360° View"
+                style={{
+                  display: 'block',
+                  maxWidth: '100%',
+                  maxHeight: '100%',
+                  width: 'auto',
+                  height: 'auto',
+                  objectFit: 'contain',
+                  willChange: 'transform',
+                  backfaceVisibility: 'hidden'
+                }}
+              />
+            </div>
           </div>
         </div>
       </div>
-
       {/* ── Frame counter (tiny, bottom-right, like a film roll) ── */}
       <div
         className="absolute bottom-8 right-10 text-[10px] tracking-[0.25em] tabular-nums"
