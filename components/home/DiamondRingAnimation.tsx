@@ -100,6 +100,13 @@ export default function DiamondRingAnimation() {
     ro.observe(document.documentElement)
     return () => ro.disconnect()
   }, [drawFrame, isMobile])
+  // Draw frame 0 as soon as frames array is ready — warms the canvas
+  // so users don't see a blank box before scrolling into the section.
+  useEffect(() => {
+    if (frames.length > 0) {
+      drawFrame(0)
+    }
+  }, [frames, drawFrame])
 
   /* ── GSAP scroll trigger ──────────────────────────────────────────── */
   useEffect(() => {
@@ -115,7 +122,7 @@ export default function DiamondRingAnimation() {
         start: 'top top',
         end: `+=${window.innerHeight * (isMobile ? 1.5 : 2)}`,
         pin: true,
-        scrub: isMobile ? 0.2 : 0.4,
+        scrub: isMobile ? 0 : 0.4, // 0 = instant on mobile, eliminates slow-scroll lag
         anticipatePin: 1,
         onUpdate: (self) => {
           const maxFrames = isMobile ? Math.round(TOTAL_FRAMES / 2) : TOTAL_FRAMES

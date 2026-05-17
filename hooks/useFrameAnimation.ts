@@ -6,6 +6,8 @@ import type { FrameAnimationState } from '@/lib/constants'
 /**
  * Preloads `totalFrames` images from `${basePath}/frame_NNN.jpg`.
  * Tracks load/error progress (0–1) and sets `ready` when all frames resolve.
+ * After load, calls img.decode() to pre-warm GPU texture cache — this eliminates
+ * the slow-scroll decode stall on mobile (first opening lag).
  *
  * Validates: Requirements 3.2, 3.5, 4.2
  */
@@ -35,6 +37,15 @@ export function useFrameAnimation(
         // Mark as ready if we have the minimum frames needed for initial display
         if (loaded >= minimumFrames) {
           setReady(true)
+        }
+
+        // Pre-decode into GPU memory to eliminate slow-scroll stall on mobile.
+        // img.decode() is async and non-blocking — it primes the browser's
+        // raster cache so the first drawImage() call is instant, not laggy.
+        if (typeof img.decode === 'function') {
+          img.decode().catch(() => {
+            // decode() can fail if the image is already GC'd or offscreen — safe to ignore
+          })
         }
       }
 
