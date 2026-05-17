@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import { Cormorant_Garamond, Jost } from 'next/font/google'
 import './globals.css'
-import CustomCursor from '@/components/layout/CustomCursor'
 import SmoothScrollProvider from '@/components/layout/SmoothScrollProvider'
 import AnimatePresenceWrapper from '@/components/layout/AnimatePresenceWrapper'
 import ConditionalHeaderFooter from '@/components/layout/ConditionalHeaderFooter'
@@ -49,8 +48,6 @@ export default function RootLayout({
     >
       <body>
         <SmoothScrollProvider>
-          <CustomCursor />
-
           <ConditionalHeaderFooter>
             <AnimatePresenceWrapper>
               {children}

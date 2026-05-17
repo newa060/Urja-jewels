@@ -31,7 +31,6 @@ export default function ProductCard({ product, className = '', priority = false 
         {/* Image container */}
         <div
           className="relative overflow-hidden aspect-[3/4] bg-[#f2f2f2]"
-          data-cursor-hover
         >
           {/* Shimmer effect */}
           {!isLoaded && (

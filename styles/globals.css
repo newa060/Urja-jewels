@@ -18,10 +18,6 @@
   --breakpoint-xs: 480px;
 }
 
-/* Custom cursor — hide the native cursor site-wide */
-body {
-  cursor: none;
-}
 
 /* Focus-visible outline using the gold design token */
 :focus-visible {

@@ -48,14 +48,14 @@ export async function getProductBySlug(slug: string): Promise<Product | undefine
     .from('products')
     .select('*')
     .eq('slug', slug)
-    .single()
+    .maybeSingle()
     
   if (error) {
-    console.error('Error fetching product by slug:', error)
+    console.error('Error fetching product by slug:', error.message || error)
     return undefined
   }
   
-  return data as Product
+  return data ? (data as Product) : undefined
 }
 
 export const getStaticProductBySlug = (slug: string) => unstable_cache(
@@ -65,14 +65,14 @@ export const getStaticProductBySlug = (slug: string) => unstable_cache(
       .from('products')
       .select('*')
       .eq('slug', slug)
-      .single()
+      .maybeSingle()
       
     if (error) {
-      console.error('Error fetching static product by slug:', error)
+      console.error('Error fetching static product by slug:', error.message || error)
       return undefined
     }
     
-    return data as Product
+    return data ? (data as Product) : undefined
   },
   [`product-${slug}`],
   { revalidate: 3600, tags: ['products', `product-${slug}`] }
@@ -84,14 +84,14 @@ export async function getProductById(id: string): Promise<Product | undefined> {
     .from('products')
     .select('*')
     .eq('id', id)
-    .single()
+    .maybeSingle()
     
   if (error) {
-    console.error('Error fetching product by id:', error)
+    console.error('Error fetching product by id:', error.message || error)
     return undefined
   }
   
-  return data as Product
+  return data ? (data as Product) : undefined
 }
 
 export async function createProduct(product: Omit<Product, 'id'>): Promise<Product | null> {
