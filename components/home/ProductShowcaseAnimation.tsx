@@ -107,29 +107,6 @@ export default function ProductShowcaseAnimation() {
   /* ── GSAP scroll animation ────────────────────────────────────────── */
   useEffect(() => {
     if (!ready || !sectionRef.current) return
-<<<<<<< HEAD
-
-    if (isMobile) {
-      drawFrame(0)
-
-      const trigger = ScrollTrigger.create({
-        trigger: sectionRef.current,
-        start: 'top bottom',
-        end: 'bottom top',
-        scrub: 0.1, // immediate, fast response to finger scrolls
-        onUpdate: (self) => {
-          const maxFrames = Math.round(TOTAL_FRAMES / 2)
-          const index = Math.round(self.progress * (maxFrames - 1))
-          currentFrameRef.current = index
-          drawFrame(index)
-        },
-      })
-
-      return () => trigger.kill()
-    } else {
-      drawFrame(0)
-
-      const trigger = ScrollTrigger.create({
 
     // Scoped GSAP context to prevent 'removeChild' errors on unmount/reload
     const ctx = gsap.context(() => {
@@ -203,8 +180,7 @@ export default function ProductShowcaseAnimation() {
     }, sectionRef)
 
     return () => ctx.revert() // Cleanly removes all pins and animations
-  }, [ready, drawFrame])
->>>>>>> 104fc4e1b24fe32d24bebb461ae61a505d7c120e
+  }, [ready, isMobile, TOTAL_FRAMES, drawFrame])
 
   return (
     <section

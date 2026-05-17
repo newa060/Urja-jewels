@@ -102,29 +102,7 @@ export default function DiamondRingAnimation() {
   /* ── GSAP scroll trigger ──────────────────────────────────────────── */
   useEffect(() => {
     if (!ready || !sectionRef.current) return
-<<<<<<< HEAD
 
-    if (isMobile) {
-      drawFrame(0)
-
-      const trigger = ScrollTrigger.create({
-        trigger: sectionRef.current,
-        start: 'top bottom',
-        end: 'bottom top',
-        scrub: 0.1, // immediate, fast response to finger scrolls
-        onUpdate: (self) => {
-          const maxFrames = Math.round(TOTAL_FRAMES / 2)
-          const index = Math.round(self.progress * (maxFrames - 1))
-          currentFrameRef.current = index
-          drawFrame(index)
-        },
-      })
-
-      return () => trigger.kill()
-    } else {
-      drawFrame(0)
-
-    
     // Scoped GSAP context to prevent 'removeChild' errors on unmount/reload
     const ctx = gsap.context(() => {
       drawFrame(0)
@@ -197,8 +175,7 @@ export default function DiamondRingAnimation() {
     }, sectionRef)
 
     return () => ctx.revert() // Cleanly removes all pins and animations
-  }, [ready, drawFrame])
->>>>>>> 104fc4e1b24fe32d24bebb461ae61a505d7c120e
+  }, [ready, isMobile, TOTAL_FRAMES, drawFrame])
 
   return (
     <section
@@ -234,62 +211,6 @@ export default function DiamondRingAnimation() {
                 alignItems: 'center',
                 justifyContent: 'center'
               }}
-<<<<<<< HEAD
-            />
-            <canvas
-              ref={canvasRef}
-              aria-label="Yellow gold diamond engagement ring — 360° scroll showcase"
-              style={{ display: 'block', width: '100%', height: '100%', objectFit: 'contain' }}
-            />
-          </div>
-        </div>
-
-        {/* RIGHT — text block */}
-        <div
-          className="flex flex-col justify-center gap-5 pr-12 md:pr-20 lg:pr-28"
-          style={{ width: '38%', minWidth: 240 }}
-        >
-          {/* Label */}
-          <p
-            className="text-[10px] uppercase tracking-[0.35em]"
-            style={{ color: 'rgba(160,120,40,0.8)' }}
-          >
-            Signature Collection
-          </p>
-
-          {/* Hairline */}
-          <div className="w-8 h-px bg-black/15" />
-
-          {/* Product name */}
-          <h2
-            className="text-[clamp(2rem,3.5vw,3.5rem)] font-extralight leading-[1.1] tracking-tight"
-            style={{ color: '#1a1410', fontFamily: 'Georgia, serif' }}
-          >
-            Yellow Gold<br />Diamond<br />Engagement Ring
-          </h2>
-
-          {/* Description */}
-          <p
-            className="text-sm leading-relaxed"
-            style={{ color: 'rgba(26,20,16,0.45)', maxWidth: 280 }}
-          >
-            A brilliant-cut diamond set in warm 18k yellow gold.
-            <br />
-            Crafted to mark life&apos;s most precious moment —
-            <br />
-            forever yours.
-          </p>
-
-          {/* Hairline */}
-          <div className="w-8 h-px bg-black/15" />
-
-          {/* Scroll hint */}
-          <div className="flex items-center gap-3">
-            <span
-              className="text-[10px] uppercase tracking-[0.3em]"
-              style={{ color: 'rgba(160,120,40,0.55)' }}
-=======
->>>>>>> 104fc4e1b24fe32d24bebb461ae61a505d7c120e
             >
               <canvas
                 ref={canvasRef}
