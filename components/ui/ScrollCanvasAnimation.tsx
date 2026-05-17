@@ -60,12 +60,11 @@ export default function ScrollCanvasAnimation({
   }, [])
 
   // Calculate effective frames and custom mapping
-  const effectiveTotalFrames = isClient ? (isMobile ? Math.round(totalFrames / 2) : totalFrames) : 0
+  const effectiveTotalFrames = isClient ? totalFrames : 0
 
   const customGetFileName = useCallback((index: number) => {
-    const actualIndex = isMobile ? index * 2 : index
-    return getFileName(actualIndex)
-  }, [getFileName, isMobile])
+    return getFileName(index)
+  }, [getFileName])
 
   const { frames, progress, ready } = useFrameAnimation(
     effectiveTotalFrames,
@@ -102,6 +101,23 @@ export default function ScrollCanvasAnimation({
     },
     [frames, portrait],
   )
+
+  const tweenRef = useRef<gsap.core.Tween | null>(null)
+  const playMobileAnimation = useCallback(() => {
+    if (!ready) return
+    if (tweenRef.current) tweenRef.current.kill()
+    const playObj = { frame: 0 }
+    tweenRef.current = gsap.to(playObj, {
+      frame: totalFrames - 1,
+      duration: 3.0, // Cinematic 3.0s flow
+      ease: 'power1.inOut', // Super smooth deceleration and acceleration curve
+      onUpdate: () => {
+        const index = Math.round(playObj.frame)
+        currentFrameRef.current = index
+        drawFrame(index)
+      }
+    })
+  }, [ready, totalFrames, drawFrame])
 
   useEffect(() => {
     if (onLoadProgress) onLoadProgress(progress)
@@ -154,25 +170,12 @@ export default function ScrollCanvasAnimation({
       drawFrame(0)
 
       if (isMobile) {
-        const maxFrames = Math.round(totalFrames / 2)
-        // Mobile: No pinning, no scroll-scrub. Auto-play once when section enters viewport.
+        // Mobile: No pinning, no scroll-scrub. Auto-play when section enters or re-enters viewport.
         ScrollTrigger.create({
           trigger: wrapperRef.current,
           start: 'top 80%', // starts when top of element is 80% down viewport
-          once: true, // fire only once
-          onEnter: () => {
-            const playObj = { frame: 0 }
-            gsap.to(playObj, {
-              frame: maxFrames - 1,
-              duration: 2.5, // play smoothly over 2.5 seconds
-              ease: 'power1.out',
-              onUpdate: () => {
-                const index = Math.round(playObj.frame)
-                currentFrameRef.current = index
-                drawFrame(index)
-              }
-            })
-          }
+          onEnter: playMobileAnimation,
+          onEnterBack: playMobileAnimation,
         })
       } else {
         // Desktop: High-fidelity scroll pinning and scrubbing
@@ -205,9 +208,11 @@ export default function ScrollCanvasAnimation({
         {/* Portrait card — responsive sizing for mobile */}
         <div
           className="relative z-10 flex items-center justify-center h-[65vh] md:h-[80vh] aspect-[2/3] max-w-[90vw]"
+          onClick={isMobile ? playMobileAnimation : undefined}
           style={{
             boxShadow: '0 32px 96px rgba(0,0,0,0.85), 0 0 0 1px rgba(212,175,55,0.15)',
             borderRadius: '4px',
+            cursor: isMobile ? 'pointer' : 'default',
           }}
         >
           <canvas
@@ -226,7 +231,12 @@ export default function ScrollCanvasAnimation({
   }
 
   return (
-    <div ref={wrapperRef} className={`relative w-full h-screen ${className}`}>
+    <div 
+      ref={wrapperRef} 
+      className={`relative w-full h-screen ${className}`}
+      onClick={isMobile ? playMobileAnimation : undefined}
+      style={{ cursor: isMobile ? 'pointer' : 'default' }}
+    >
       <canvas
         ref={canvasRef}
         className="absolute inset-0 w-full h-full"

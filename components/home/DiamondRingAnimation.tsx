@@ -37,12 +37,11 @@ export default function DiamondRingAnimation() {
   }, [])
 
   // Calculate effective frames and custom mapping
-  const effectiveTotalFrames = isClient ? (isMobile ? Math.round(TOTAL_FRAMES / 2) : TOTAL_FRAMES) : 0
+  const effectiveTotalFrames = isClient ? TOTAL_FRAMES : 0
 
   const customGetFileName = useCallback((index: number) => {
-    const actualIndex = isMobile ? index * 2 : index
-    return `Yellow_gold_diamond_engagement_ring_202605130931_${String(actualIndex).padStart(3, '0')}.webp`
-  }, [isMobile])
+    return `Yellow_gold_diamond_engagement_ring_202605130931_${String(index).padStart(3, '0')}.webp`
+  }, [])
 
   const { frames, ready } = useFrameAnimation(
     effectiveTotalFrames,
@@ -101,6 +100,37 @@ export default function DiamondRingAnimation() {
     return () => ro.disconnect()
   }, [drawFrame, isMobile])
 
+  const tweenRef = useRef<gsap.core.Tween | null>(null)
+  const playMobileAnimation = useCallback(() => {
+    if (!ready || !sectionRef.current) return
+    if (tweenRef.current) tweenRef.current.kill()
+    const playObj = { frame: 0 }
+    tweenRef.current = gsap.to(playObj, {
+      frame: TOTAL_FRAMES - 1,
+      duration: 3.0, // Cinematic 3.0s flow
+      ease: 'power1.inOut', // Super smooth deceleration and acceleration curve
+      onUpdate: () => {
+        const index = Math.round(playObj.frame)
+        currentFrameRef.current = index
+        drawFrame(index)
+
+        // Subtle Focus Transition based on animation progress
+        const progress = playObj.frame / (TOTAL_FRAMES - 1)
+        let opacity = 1
+        let blur = 0
+        if (progress < 0.1) {
+          opacity = 0.7 + (progress / 0.1) * 0.3
+          blur = 4 * (1 - progress / 0.1)
+        }
+
+        const content = sectionRef.current?.querySelector('.cinematic-content') as HTMLElement
+        if (content) {
+          gsap.set(content, { opacity, filter: `blur(${blur}px)` })
+        }
+      }
+    })
+  }, [ready, TOTAL_FRAMES, drawFrame])
+
   useEffect(() => {
     if (!ready || !sectionRef.current) return
 
@@ -110,39 +140,12 @@ export default function DiamondRingAnimation() {
       ScrollTrigger.refresh()
 
       if (isMobile) {
-        const maxFrames = Math.round(TOTAL_FRAMES / 2)
-        // Mobile: No pinning, no scroll-scrub. Auto-play once when section enters viewport.
+        // Mobile: No pinning, no scroll-scrub. Auto-play when section enters or re-enters viewport.
         ScrollTrigger.create({
           trigger: sectionRef.current,
           start: 'top 80%',
-          once: true,
-          onEnter: () => {
-            const playObj = { frame: 0 }
-            gsap.to(playObj, {
-              frame: maxFrames - 1,
-              duration: 2.2, // Play smoothly over 2.2s
-              ease: 'power1.out',
-              onUpdate: () => {
-                const index = Math.round(playObj.frame)
-                currentFrameRef.current = index
-                drawFrame(index)
-
-                // Subtle Focus Transition based on animation progress
-                const progress = playObj.frame / (maxFrames - 1)
-                let opacity = 1
-                let blur = 0
-                if (progress < 0.1) {
-                  opacity = 0.7 + (progress / 0.1) * 0.3
-                  blur = 4 * (1 - progress / 0.1)
-                }
-
-                const content = sectionRef.current?.querySelector('.cinematic-content') as HTMLElement
-                if (content) {
-                  gsap.set(content, { opacity, filter: `blur(${blur}px)` })
-                }
-              }
-            })
-          }
+          onEnter: playMobileAnimation,
+          onEnterBack: playMobileAnimation,
         })
       } else {
         // Desktop: High-fidelity scroll pinning and scrubbing
@@ -208,7 +211,11 @@ export default function DiamondRingAnimation() {
         <div className="absolute inset-0 flex flex-col md:flex-row items-center justify-center md:justify-start pt-8 pb-12 md:py-0 gap-6 md:gap-0">
 
           {/* CANVAS BLOCK — Now stacks on mobile, taking up consistent height */}
-          <div className="flex items-center justify-center flex-1 w-full order-1 min-h-[50vh] md:min-h-0 md:h-full">
+          <div 
+            className="flex items-center justify-center flex-1 w-full order-1 min-h-[50vh] md:min-h-0 md:h-full"
+            onClick={isMobile ? playMobileAnimation : undefined}
+            style={{ cursor: isMobile ? 'pointer' : 'default' }}
+          >
             <div
               style={{
                 position: 'relative',
