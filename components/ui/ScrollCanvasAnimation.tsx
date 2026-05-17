@@ -149,10 +149,6 @@ export default function ScrollCanvasAnimation({
   useEffect(() => {
     if (!ready || !wrapperRef.current) return
 
-    // On mobile, compress the scroll distance so the animation feels fast
-    // and responsive — completing in less thumb travel.
-    const effectiveScrollDistance = isMobile ? Math.min(scrollDistance, 1.8) : scrollDistance
-
     // Scoped GSAP context to prevent 'removeChild' errors
     const ctx = gsap.context(() => {
       drawFrame(0)
@@ -160,9 +156,9 @@ export default function ScrollCanvasAnimation({
       ScrollTrigger.create({
         trigger: wrapperRef.current,
         start: 'top top',
-        end: `+=${window.innerHeight * effectiveScrollDistance}`,
+        end: `+=${window.innerHeight * (isMobile ? Math.min(scrollDistance, 1.8) : scrollDistance)}`,
         pin: true,
-        scrub: isMobile ? 0 : 0.6, // 0 = instant on mobile, no tween catch-up lag
+        scrub: isMobile ? 0 : 0.6, // 0 = instant on mobile for snappy frame response
         anticipatePin: 1,
         onUpdate: (self) => {
           const maxFrames = isMobile ? Math.round(totalFrames / 2) : totalFrames
