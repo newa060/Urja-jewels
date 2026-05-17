@@ -1,12 +1,10 @@
 import type { Metadata } from 'next'
 import { Cormorant_Garamond, Jost } from 'next/font/google'
 import './globals.css'
-import Navbar from '@/components/layout/Navbar'
-import Footer from '@/components/layout/Footer'
 import CustomCursor from '@/components/layout/CustomCursor'
 import SmoothScrollProvider from '@/components/layout/SmoothScrollProvider'
 import AnimatePresenceWrapper from '@/components/layout/AnimatePresenceWrapper'
-import { headers } from 'next/headers'
+import ConditionalHeaderFooter from '@/components/layout/ConditionalHeaderFooter'
 
 // ---------------------------------------------------------------------------
 // Fonts
@@ -39,15 +37,11 @@ export const metadata: Metadata = {
 // Root layout
 // ---------------------------------------------------------------------------
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const headersList = await headers()
-  const pathname = headersList.get('x-pathname') || ''
-  const isAdmin = pathname.startsWith('/admin')
-
   return (
     <html
       lang="en"
@@ -57,17 +51,11 @@ export default async function RootLayout({
         <SmoothScrollProvider>
           <CustomCursor />
 
-          {/* Hide Navbar on admin routes */}
-          {!isAdmin && <Navbar />}
-
-          <main>
+          <ConditionalHeaderFooter>
             <AnimatePresenceWrapper>
               {children}
             </AnimatePresenceWrapper>
-          </main>
-
-          {/* Hide Footer on admin routes */}
-          {!isAdmin && <Footer />}
+          </ConditionalHeaderFooter>
         </SmoothScrollProvider>
       </body>
     </html>

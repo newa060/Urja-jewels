@@ -153,34 +153,20 @@ export default function ScrollCanvasAnimation({
     const ctx = gsap.context(() => {
       drawFrame(0)
 
-      if (isMobile) {
-        ScrollTrigger.create({
-          trigger: wrapperRef.current,
-          start: 'top top',
-          end: 'bottom top',
-          scrub: 0.1, // immediate, fast response to fingers
-          onUpdate: (self) => {
-            const maxFrames = Math.round(totalFrames / 2)
-            const index = Math.round(self.progress * (maxFrames - 1))
-            currentFrameRef.current = index
-            drawFrame(index)
-          },
-        })
-      } else {
-        ScrollTrigger.create({
-          trigger: wrapperRef.current,
-          start: 'top top',
-          end: `+=${window.innerHeight * scrollDistance}`,
-          pin: true,
-          scrub: 0.6, // Bishal optimized to 0.6 on desktop for snappier feel
-          anticipatePin: 1,
-          onUpdate: (self) => {
-            const index = Math.round(self.progress * (totalFrames - 1))
-            currentFrameRef.current = index
-            drawFrame(index)
-          },
-        })
-      }
+      ScrollTrigger.create({
+        trigger: wrapperRef.current,
+        start: 'top top',
+        end: `+=${window.innerHeight * scrollDistance}`,
+        pin: true,
+        scrub: isMobile ? 0.1 : 0.6, // immediate on mobile, snappier on desktop
+        anticipatePin: 1,
+        onUpdate: (self) => {
+          const maxFrames = isMobile ? Math.round(totalFrames / 2) : totalFrames
+          const index = Math.round(self.progress * (maxFrames - 1))
+          currentFrameRef.current = index
+          drawFrame(index)
+        },
+      })
     }, wrapperRef)
 
     return () => ctx.revert()

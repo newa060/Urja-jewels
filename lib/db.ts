@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createStaticClient } from '@/lib/supabase/static'
 import { Product } from './constants'
+import { unstable_cache } from 'next/cache'
 
 export async function getProducts(): Promise<Product[]> {
   try {
@@ -20,22 +21,26 @@ export async function getProducts(): Promise<Product[]> {
   }
 }
 
-export async function getStaticProducts(): Promise<Product[]> {
-  try {
-    const supabase = createStaticClient()
-    const { data, error } = await supabase.from('products').select('*')
-    
-    if (error) {
-      console.error('Supabase error in getStaticProducts:', error.message, error.details)
+export const getStaticProducts = unstable_cache(
+  async (): Promise<Product[]> => {
+    try {
+      const supabase = createStaticClient()
+      const { data, error } = await supabase.from('products').select('*')
+      
+      if (error) {
+        console.error('Supabase error in getStaticProducts:', error.message, error.details)
+        return []
+      }
+      
+      return (data as Product[]) || []
+    } catch (err) {
+      console.error('Unexpected error in getStaticProducts:', err)
       return []
     }
-    
-    return (data as Product[]) || []
-  } catch (err) {
-    console.error('Unexpected error in getStaticProducts:', err)
-    return []
-  }
-}
+  },
+  ['products-list'],
+  { revalidate: 3600, tags: ['products'] }
+)
 
 export async function getProductBySlug(slug: string): Promise<Product | undefined> {
   const supabase = await createClient()
@@ -53,21 +58,25 @@ export async function getProductBySlug(slug: string): Promise<Product | undefine
   return data as Product
 }
 
-export async function getStaticProductBySlug(slug: string): Promise<Product | undefined> {
-  const supabase = createStaticClient()
-  const { data, error } = await supabase
-    .from('products')
-    .select('*')
-    .eq('slug', slug)
-    .single()
+export const getStaticProductBySlug = (slug: string) => unstable_cache(
+  async (): Promise<Product | undefined> => {
+    const supabase = createStaticClient()
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .eq('slug', slug)
+      .single()
+      
+    if (error) {
+      console.error('Error fetching static product by slug:', error)
+      return undefined
+    }
     
-  if (error) {
-    console.error('Error fetching static product by slug:', error)
-    return undefined
-  }
-  
-  return data as Product
-}
+    return data as Product
+  },
+  [`product-${slug}`],
+  { revalidate: 3600, tags: ['products', `product-${slug}`] }
+)()
 
 export async function getProductById(id: string): Promise<Product | undefined> {
   const supabase = await createClient()

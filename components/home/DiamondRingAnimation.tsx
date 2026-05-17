@@ -82,10 +82,12 @@ export default function DiamondRingAnimation() {
       prevWidthRef.current = currentWidth
 
       if (isMobile) {
-        // Square canvas for mobile centered view
-        const size = Math.round(Math.min(window.innerWidth * 0.85, window.innerHeight * 0.5))
-        canvas.height = size
-        canvas.width = size
+        // Taller portrait card for mobile, filling more space
+        const targetWidth = window.innerWidth * 0.9;
+        const targetHeight = window.innerHeight * 0.55;
+        const w = Math.min(targetWidth, targetHeight * 0.75); // ~3:4 aspect ratio
+        canvas.width = Math.round(w);
+        canvas.height = Math.round(w / 0.75);
       } else {
         canvas.height = Math.round(window.innerHeight * 0.85)
         canvas.width  = Math.round(canvas.height * 0.70)
@@ -108,68 +110,27 @@ export default function DiamondRingAnimation() {
       drawFrame(0)
       ScrollTrigger.refresh()
 
-      if (isMobile) {
-        ScrollTrigger.create({
-          trigger: sectionRef.current,
-          start: 'top bottom',
-          end: 'bottom top',
-          scrub: 0.1, // immediate, fast response to finger scrolls
-          onUpdate: (self) => {
-            const maxFrames = Math.round(TOTAL_FRAMES / 2)
-            const index = Math.round(self.progress * (maxFrames - 1))
-            currentFrameRef.current = index
-            drawFrame(index)
+      ScrollTrigger.create({
+        trigger: sectionRef.current,
+        start: 'top top',
+        end: `+=${window.innerHeight * 2}`,
+        pin: true,
+        scrub: isMobile ? 0.1 : 0.4,
+        anticipatePin: 1,
+        onUpdate: (self) => {
+          const maxFrames = isMobile ? Math.round(TOTAL_FRAMES / 2) : TOTAL_FRAMES
+          const index = Math.round(self.progress * (maxFrames - 1))
+          currentFrameRef.current = index
+          drawFrame(index)
 
-            // Subtle focus entrance/exit transition as mobile scrolls
-            let opacity = 1
-            let blur = 0
-            if (self.progress < 0.2) {
-              opacity = 0.7 + (self.progress / 0.2) * 0.3
-              blur = 4 * (1 - self.progress / 0.2)
-            } else if (self.progress > 0.8) {
-              opacity = 0.7 + ((1 - self.progress) / 0.2) * 0.3
-              blur = 4 * (1 - (1 - self.progress) / 0.2)
-            }
-
-            const content = sectionRef.current?.querySelector('.cinematic-content') as HTMLElement
-            if (content) {
-              gsap.set(content, { opacity, filter: `blur(${blur}px)` })
-            }
-          },
-        })
-      } else {
-        ScrollTrigger.create({
-          trigger: sectionRef.current,
-          start:   'top top',
-          end:     `+=${window.innerHeight * 2}`,
-          pin:     true,
-          scrub:   0.4,
-          anticipatePin: 1,
-          onUpdate: (self) => {
-            const index = Math.round(self.progress * (TOTAL_FRAMES - 1))
-            currentFrameRef.current = index
-            drawFrame(index)
-
-            // Subtle Focus Transition
-            let opacity = 1
-            let blur = 0
-            if (self.progress < 0.05) {
-              opacity = 0.7 + (self.progress / 0.05) * 0.3
-              blur = 4 * (1 - self.progress / 0.05)
-            }
-
-            const content = sectionRef.current?.querySelector('.cinematic-content') as HTMLElement
+          if (!isMobile) {
             const textBlock = sectionRef.current?.querySelector('.parallax-text') as HTMLElement
-            
-            if (content) {
-              gsap.set(content, { opacity, filter: `blur(${blur}px)` })
-            }
             if (textBlock) {
               gsap.set(textBlock, { y: (self.progress - 0.5) * -60 })
             }
-          },
-        })
-      }
+          }
+        },
+      })
       
       ScrollTrigger.refresh()
     }, sectionRef)
@@ -186,8 +147,6 @@ export default function DiamondRingAnimation() {
       <div 
         className="cinematic-content w-full h-full"
         style={{ 
-          opacity: 0.7, 
-          filter: 'blur(4px)',
           willChange: 'transform, opacity', 
           backfaceVisibility: 'hidden' 
         }}
@@ -197,16 +156,16 @@ export default function DiamondRingAnimation() {
         <div className="absolute inset-x-0 bottom-0 h-px bg-black/5" />
 
         {/* Two-column — stacks on mobile */}
-        <div className="absolute inset-0 flex flex-col md:flex-row items-center justify-center md:justify-start pt-16 md:pt-0">
+        <div className="absolute inset-0 flex flex-col md:flex-row items-center justify-center md:justify-start pt-8 pb-12 md:py-0 gap-6 md:gap-0">
 
           {/* CANVAS BLOCK — Now stacks on mobile */}
-          <div className="flex items-center justify-center flex-1 w-full order-1 h-[45vh] md:h-full">
+          <div className="flex items-center justify-center flex-1 w-full order-1 md:h-full min-h-[50vh] md:min-h-0">
             <div
               style={{
                 position: 'relative',
                 height: '100%',
                 width: '100%',
-                maxWidth: '85vw',
+                maxWidth: '95vw',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center'
@@ -231,7 +190,7 @@ export default function DiamondRingAnimation() {
 
           {/* TEXT BLOCK — Now stacks on mobile */}
           <div
-            className="parallax-text flex flex-col justify-center gap-4 md:gap-6 px-8 md:pr-20 lg:pr-32 order-2 md:order-2 w-full md:w-[42%] max-w-[500px]"
+            className="parallax-text flex flex-col justify-center gap-3 md:gap-6 px-6 md:pr-20 lg:pr-32 order-2 md:order-2 w-full md:w-[42%] max-w-[500px] shrink-0"
           >
             {/* Label */}
             <p
@@ -255,8 +214,8 @@ export default function DiamondRingAnimation() {
             {/* Description */}
             <div className="space-y-4">
               <p
-                className="text-[12px] md:text-[13px] leading-relaxed font-body text-center md:text-left"
-                style={{ color: 'rgba(26,20,16,0.5)', maxWidth: 300, margin: '0 auto' }}
+                className="text-[13px] leading-relaxed font-body text-center md:text-left mx-auto md:mx-0 max-w-[320px]"
+                style={{ color: 'rgba(26,20,16,0.7)' }}
               >
                 A brilliant-cut diamond of exceptional clarity, set in a meticulously hand-crafted 18k yellow gold band. A promise made for eternity.
               </p>
@@ -277,7 +236,7 @@ export default function DiamondRingAnimation() {
       </div>
       {/* Watermark */}
       <div
-        className="absolute bottom-8 left-10 text-[10px] tracking-[0.25em] tabular-nums"
+        className="hidden md:block absolute bottom-8 left-10 text-[10px] tracking-[0.25em] tabular-nums"
         style={{ color: 'rgba(26,20,16,0.18)' }}
       >
         Yellow Gold Diamond — Urja Jewels
