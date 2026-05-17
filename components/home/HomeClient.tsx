@@ -35,13 +35,9 @@ export default function HomeClient({ heroQuote, featuredProducts }: HomeClientPr
 
   const handleScreenComplete = useCallback(() => {
     setLoadComplete(true)
+    // Force a refresh and normalize scroll to stop vibration
     import('gsap/ScrollTrigger').then(({ ScrollTrigger }) => {
-      // normalizeScroll intercepts native scroll events — great on desktop but
-      // kills hardware-accelerated momentum scroll on mobile. Only enable on desktop.
-      const isTouch = window.matchMedia('(pointer: coarse)').matches
-      if (!isTouch) {
-        ScrollTrigger.normalizeScroll(true)
-      }
+      ScrollTrigger.normalizeScroll(true)
       ScrollTrigger.refresh()
     })
   }, [])

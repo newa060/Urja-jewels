@@ -15,9 +15,18 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
 
-  // Scroll listener — flip `scrolled` at scrollY > 80
+  // Scroll listener — flip `scrolled` at scrollY > 80 (throttled to 100ms on mobile)
   useEffect(() => {
+    let lastCall = 0
     const handleScroll = () => {
+      const now = Date.now()
+      const isMobile = window.innerWidth < 768 || window.matchMedia('(pointer: coarse)').matches
+
+      if (isMobile) {
+        if (now - lastCall < 100) return
+        lastCall = now
+      }
+
       setScrolled(window.scrollY > 80)
     }
 

@@ -153,20 +153,43 @@ export default function ScrollCanvasAnimation({
     const ctx = gsap.context(() => {
       drawFrame(0)
 
-      ScrollTrigger.create({
-        trigger: wrapperRef.current,
-        start: 'top top',
-        end: `+=${window.innerHeight * (isMobile ? Math.min(scrollDistance, 1.8) : scrollDistance)}`,
-        pin: true,
-        scrub: isMobile ? 0 : 0.6, // 0 = instant on mobile for snappy frame response
-        anticipatePin: 1,
-        onUpdate: (self) => {
-          const maxFrames = isMobile ? Math.round(totalFrames / 2) : totalFrames
-          const index = Math.round(self.progress * (maxFrames - 1))
-          currentFrameRef.current = index
-          drawFrame(index)
-        },
-      })
+      if (isMobile) {
+        const maxFrames = Math.round(totalFrames / 2)
+        // Mobile: No pinning, no scroll-scrub. Auto-play once when section enters viewport.
+        ScrollTrigger.create({
+          trigger: wrapperRef.current,
+          start: 'top 80%', // starts when top of element is 80% down viewport
+          once: true, // fire only once
+          onEnter: () => {
+            const playObj = { frame: 0 }
+            gsap.to(playObj, {
+              frame: maxFrames - 1,
+              duration: 2.5, // play smoothly over 2.5 seconds
+              ease: 'power1.out',
+              onUpdate: () => {
+                const index = Math.round(playObj.frame)
+                currentFrameRef.current = index
+                drawFrame(index)
+              }
+            })
+          }
+        })
+      } else {
+        // Desktop: High-fidelity scroll pinning and scrubbing
+        ScrollTrigger.create({
+          trigger: wrapperRef.current,
+          start: 'top top',
+          end: `+=${window.innerHeight * scrollDistance}`,
+          pin: true,
+          scrub: 0.6,
+          anticipatePin: 1,
+          onUpdate: (self) => {
+            const index = Math.round(self.progress * (totalFrames - 1))
+            currentFrameRef.current = index
+            drawFrame(index)
+          },
+        })
+      }
     }, wrapperRef)
 
     return () => ctx.revert()
@@ -190,7 +213,11 @@ export default function ScrollCanvasAnimation({
           <canvas
             ref={canvasRef}
             className="w-full h-full rounded-[4px]"
-            style={{ display: 'block' }}
+            style={{ 
+              display: 'block',
+              willChange: isMobile ? 'transform' : 'auto',
+              transform: isMobile ? 'translate3d(0, 0, 0)' : 'none'
+            }}
             aria-label={ariaLabel}
           />
         </div>
@@ -203,6 +230,10 @@ export default function ScrollCanvasAnimation({
       <canvas
         ref={canvasRef}
         className="absolute inset-0 w-full h-full"
+        style={{
+          willChange: isMobile ? 'transform' : 'auto',
+          transform: isMobile ? 'translate3d(0, 0, 0)' : 'none'
+        }}
         aria-label={ariaLabel}
       />
       {children}

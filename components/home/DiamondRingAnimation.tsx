@@ -100,15 +100,7 @@ export default function DiamondRingAnimation() {
     ro.observe(document.documentElement)
     return () => ro.disconnect()
   }, [drawFrame, isMobile])
-  // Draw frame 0 as soon as frames array is ready — warms the canvas
-  // so users don't see a blank box before scrolling into the section.
-  useEffect(() => {
-    if (frames.length > 0) {
-      drawFrame(0)
-    }
-  }, [frames, drawFrame])
 
-  /* ── GSAP scroll trigger ──────────────────────────────────────────── */
   useEffect(() => {
     if (!ready || !sectionRef.current) return
 
@@ -117,40 +109,75 @@ export default function DiamondRingAnimation() {
       drawFrame(0)
       ScrollTrigger.refresh()
 
-      ScrollTrigger.create({
-        trigger: sectionRef.current,
-        start: 'top top',
-        end: `+=${window.innerHeight * (isMobile ? 1.5 : 2)}`,
-        pin: true,
-        scrub: isMobile ? 0 : 0.4, // 0 = instant on mobile, eliminates slow-scroll lag
-        anticipatePin: 1,
-        onUpdate: (self) => {
-          const maxFrames = isMobile ? Math.round(TOTAL_FRAMES / 2) : TOTAL_FRAMES
-          const index = Math.round(self.progress * (maxFrames - 1))
-          currentFrameRef.current = index
-          drawFrame(index)
+      if (isMobile) {
+        const maxFrames = Math.round(TOTAL_FRAMES / 2)
+        // Mobile: No pinning, no scroll-scrub. Auto-play once when section enters viewport.
+        ScrollTrigger.create({
+          trigger: sectionRef.current,
+          start: 'top 80%',
+          once: true,
+          onEnter: () => {
+            const playObj = { frame: 0 }
+            gsap.to(playObj, {
+              frame: maxFrames - 1,
+              duration: 2.2, // Play smoothly over 2.2s
+              ease: 'power1.out',
+              onUpdate: () => {
+                const index = Math.round(playObj.frame)
+                currentFrameRef.current = index
+                drawFrame(index)
 
-          // Subtle Focus Transition
-          let opacity = 1
-          let blur = 0
-          if (self.progress < 0.05) {
-            opacity = 0.7 + (self.progress / 0.05) * 0.3
-            blur = 4 * (1 - self.progress / 0.05)
+                // Subtle Focus Transition based on animation progress
+                const progress = playObj.frame / (maxFrames - 1)
+                let opacity = 1
+                let blur = 0
+                if (progress < 0.1) {
+                  opacity = 0.7 + (progress / 0.1) * 0.3
+                  blur = 4 * (1 - progress / 0.1)
+                }
+
+                const content = sectionRef.current?.querySelector('.cinematic-content') as HTMLElement
+                if (content) {
+                  gsap.set(content, { opacity, filter: `blur(${blur}px)` })
+                }
+              }
+            })
           }
+        })
+      } else {
+        // Desktop: High-fidelity scroll pinning and scrubbing
+        ScrollTrigger.create({
+          trigger: sectionRef.current,
+          start: 'top top',
+          end: `+=${window.innerHeight * 2}`,
+          pin: true,
+          scrub: 0.4,
+          anticipatePin: 1,
+          onUpdate: (self) => {
+            const index = Math.round(self.progress * (TOTAL_FRAMES - 1))
+            currentFrameRef.current = index
+            drawFrame(index)
 
-          const content = sectionRef.current?.querySelector('.cinematic-content') as HTMLElement
-          if (content) {
-            gsap.set(content, { opacity, filter: `blur(${blur}px)` })
-          }
+            // Subtle Focus Transition based on scroll progress
+            let opacity = 1
+            let blur = 0
+            if (self.progress < 0.05) {
+              opacity = 0.7 + (self.progress / 0.05) * 0.3
+              blur = 4 * (1 - self.progress / 0.05)
+            }
 
-          if (!isMobile) {
+            const content = sectionRef.current?.querySelector('.cinematic-content') as HTMLElement
+            if (content) {
+              gsap.set(content, { opacity, filter: `blur(${blur}px)` })
+            }
+
             const textBlock = sectionRef.current?.querySelector('.parallax-text') as HTMLElement
             if (textBlock) {
               gsap.set(textBlock, { y: (self.progress - 0.5) * -60 })
             }
-          }
-        },
-      })
+          },
+        })
+      }
       
       ScrollTrigger.refresh()
     }, sectionRef)
@@ -204,6 +231,7 @@ export default function DiamondRingAnimation() {
                   height: 'auto',
                   objectFit: 'contain',
                   willChange: 'transform',
+                  transform: isMobile ? 'translate3d(0, 0, 0)' : 'none',
                   backfaceVisibility: 'hidden'
                 }}
               />
