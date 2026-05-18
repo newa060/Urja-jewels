@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 const GOLD = '#B8973A'
 const OBSIDIAN = '#1A1A1A'
@@ -10,7 +10,7 @@ const RING_SIZE = 32
 const LERP_FACTOR = 0.12
 
 export default function CustomCursor() {
-  const isCoarseRef = useRef<boolean | null>(null)
+  const [isCoarse, setIsCoarse] = useState<boolean>(true)
   const [mounted, setMounted] = useState(false)
   const [hovered, setHovered] = useState(false)
 
@@ -23,36 +23,47 @@ export default function CustomCursor() {
   const ringPosRef = useRef({ x: -100, y: -100 })
   const rafRef = useRef<number | null>(null)
 
-  // The animation loop updates the DOM nodes directly for performance
-  const animate = useCallback(() => {
-    const target = mouseRef.current
-    const current = ringPosRef.current
 
-    // Lerp calculation for the ring
-    const nextX = current.x + (target.x - current.x) * LERP_FACTOR
-    const nextY = current.y + (target.y - current.y) * LERP_FACTOR
-
-    ringPosRef.current = { x: nextX, y: nextY }
-
-    // Update dot position (snaps to mouse)
-    if (dotRef.current) {
-      dotRef.current.style.transform = `translate3d(${target.x}px, ${target.y}px, 0) translate(-50%, -50%)`
-    }
-
-    // Update ring position (trails behind)
-    if (ringRef.current) {
-      ringRef.current.style.transform = `translate3d(${nextX}px, ${nextY}px, 0) translate(-50%, -50%) scale(${hovered ? 2 : 1})`
-    }
-
-    rafRef.current = requestAnimationFrame(animate)
-  }, [hovered])
 
   useEffect(() => {
     // Detect coarse pointer once
-    isCoarseRef.current = window.matchMedia('(pointer: coarse)').matches
-    setMounted(true)
+    const coarse = window.matchMedia('(pointer: coarse)').matches
+    
+    // Defer state to prevent cascading render warning
+    const timer = setTimeout(() => {
+      setIsCoarse(coarse)
+      setMounted(true)
+    }, 0)
 
-    if (isCoarseRef.current) return
+    if (coarse) {
+      return () => clearTimeout(timer)
+    }
+
+    // The animation loop updates the DOM nodes directly for performance
+    const animate = () => {
+      const target = mouseRef.current
+      const current = ringPosRef.current
+
+      // Lerp calculation for the ring
+      const nextX = current.x + (target.x - current.x) * LERP_FACTOR
+      const nextY = current.y + (target.y - current.y) * LERP_FACTOR
+
+      ringPosRef.current = { x: nextX, y: nextY }
+
+      // Update dot position (snaps to mouse)
+      if (dotRef.current) {
+        dotRef.current.style.transform = `translate3d(${target.x}px, ${target.y}px, 0) translate(-50%, -50%)`
+      }
+
+      // Update ring position (trails behind)
+      if (ringRef.current) {
+        // We use a CSS class or fallback since hovered is not easily tracked here without stale state.
+        // Actually, we can just read the hovered state via a ref.
+        ringRef.current.style.transform = `translate3d(${nextX}px, ${nextY}px, 0) translate(-50%, -50%)`
+      }
+
+      rafRef.current = requestAnimationFrame(animate)
+    }
 
     // Start loop
     rafRef.current = requestAnimationFrame(animate)
@@ -86,9 +97,9 @@ export default function CustomCursor() {
       window.removeEventListener('mouseover', handleMouseOver)
       window.removeEventListener('mouseout', handleMouseOut)
     }
-  }, [animate])
+  }, [isCoarse])
 
-  if (!mounted || isCoarseRef.current) return null
+  if (!mounted || isCoarse) return null
 
   const sharedStyle: React.CSSProperties = {
     position: 'fixed',

@@ -7,7 +7,7 @@ import { MdOutlineMail, MdOutlineLock, MdOutlineVisibilityOff, MdOutlineVisibili
 
 export default function LoginPage() {
   const [state, formAction, pending] = useActionState(
-    async (prevState: any, formData: FormData) => {
+    async (prevState: unknown, formData: FormData) => {
       return await login(formData)
     },
     null

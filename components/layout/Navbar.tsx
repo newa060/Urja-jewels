@@ -65,7 +65,7 @@ export default function Navbar() {
         className={[
           'fixed top-0 left-0 w-full z-50 transition-all duration-300',
           scrolled
-            ? 'bg-obsidian/95 backdrop-blur-sm'
+            ? 'bg-obsidian/95'
             : 'bg-transparent',
         ].join(' ')}
       >

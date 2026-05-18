@@ -74,7 +74,7 @@ export default async function AboutPage() {
           </div>
           <div className="relative z-10 text-center px-8">
             <h2 className="font-display text-3xl md:text-5xl text-ivory tracking-wider max-w-3xl mx-auto leading-tight">
-              "{content.craftsmanship.quote}"
+              &ldquo;{content.craftsmanship.quote}&rdquo;
             </h2>
           </div>
         </section>
@@ -82,7 +82,7 @@ export default async function AboutPage() {
         {/* Values Section */}
         <section className="px-8 py-24 max-w-6xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-16">
-            {content.values.map((value: any, i: number) => (
+            {content.values.map((value: { title: string; body: string }, i: number) => (
               <div key={i} className="text-center">
                 <h3 className="font-display text-xl text-stone-900 mb-4 tracking-wide">{value.title}</h3>
                 <p className="font-body text-sm text-stone-600 leading-relaxed">

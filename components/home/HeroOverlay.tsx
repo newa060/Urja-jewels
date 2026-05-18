@@ -1,15 +1,11 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
-import { motion, useScroll, useTransform } from 'framer-motion'
+import { useRef } from 'react'
+import { motion } from 'framer-motion'
 import Link from 'next/link'
 
 export default function HeroOverlay() {
   const containerRef = useRef<HTMLDivElement>(null)
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ['start start', 'end end'],
-  })
 
   return (
     <div ref={containerRef} className="absolute inset-0 z-10 pointer-events-none overflow-hidden">
@@ -67,13 +63,13 @@ export default function HeroOverlay() {
         <div className="flex flex-col sm:flex-row gap-8 pointer-events-auto">
           <Link 
             href="/collection"
-            className="px-12 py-4 border border-ivory/20 bg-black/10 backdrop-blur-md text-ivory font-body text-xs uppercase tracking-[0.3em] hover:bg-ivory hover:text-obsidian transition-all duration-700 rounded-sm min-w-[240px]"
+            className="px-12 py-4 border border-ivory/20 bg-black/40 text-ivory font-body text-xs uppercase tracking-[0.3em] hover:bg-ivory hover:text-obsidian transition-all duration-700 rounded-sm min-w-[240px]"
           >
             Explore Collection
           </Link>
           <Link 
             href="/about"
-            className="px-12 py-4 border border-gold/30 bg-black/10 backdrop-blur-md text-gold font-body text-xs uppercase tracking-[0.3em] hover:bg-gold hover:text-obsidian transition-all duration-700 rounded-sm min-w-[240px] flex items-center justify-center gap-3 group"
+            className="px-12 py-4 border border-gold/30 bg-black/40 text-gold font-body text-xs uppercase tracking-[0.3em] hover:bg-gold hover:text-obsidian transition-all duration-700 rounded-sm min-w-[240px] flex items-center justify-center gap-3 group"
           >
             Our Story <span className="group-hover:translate-x-2 transition-transform duration-500 font-serif text-lg">&rarr;</span>
           </Link>

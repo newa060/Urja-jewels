@@ -26,7 +26,7 @@ export default async function SiteContentPage() {
     <div className="max-w-6xl mx-auto space-y-12">
       <div>
         <h1 className="text-3xl font-bold text-[#0f172a]">Site Content</h1>
-        <p className="text-[#64748b] mt-1">Manage the dynamic sections of your website's pages.</p>
+        <p className="text-[#64748b] mt-1">Manage the dynamic sections of your website&apos;s pages.</p>
       </div>
 
       <div className="space-y-12">

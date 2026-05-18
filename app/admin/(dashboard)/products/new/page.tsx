@@ -9,7 +9,7 @@ export default function NewProductPage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   
   const [state, formAction, pending] = useActionState(
-    async (prevState: any, formData: FormData) => {
+    async (prevState: unknown, formData: FormData) => {
       await addProduct(formData)
     },
     null

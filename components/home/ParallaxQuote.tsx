@@ -48,7 +48,11 @@ export default function ParallaxQuote({ quote, author, imageSrc, imageAlt }: Par
       className="relative overflow-hidden h-[60vh] flex items-center justify-center"
     >
       {/* Parallax background — scaled up so yPercent travel doesn't expose edges */}
-      <div ref={bgRef} className="absolute inset-0 scale-125">
+      <div 
+        ref={bgRef} 
+        className="absolute inset-0 scale-125"
+        style={{ willChange: 'transform', transform: 'translate3d(0, 0, 0)' }}
+      >
         {/* <!-- REPLACE IMAGE --> */}
         <Image
           src={imageSrc}

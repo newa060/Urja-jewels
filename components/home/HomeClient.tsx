@@ -23,7 +23,6 @@ interface HomeClientProps {
 
 export default function HomeClient({ heroQuote, featuredProducts }: HomeClientProps) {
   const [loadProgress, setLoadProgress] = useState(0)
-  const [loadComplete, setLoadComplete] = useState(false)
 
   const handleLoadProgress = useCallback((p: number) => {
     setLoadProgress(p)
@@ -34,10 +33,7 @@ export default function HomeClient({ heroQuote, featuredProducts }: HomeClientPr
   }, [])
 
   const handleScreenComplete = useCallback(() => {
-    setLoadComplete(true)
-    // Force a refresh and normalize scroll to stop vibration
     import('gsap/ScrollTrigger').then(({ ScrollTrigger }) => {
-      ScrollTrigger.normalizeScroll(true)
       ScrollTrigger.refresh()
     })
   }, [])
