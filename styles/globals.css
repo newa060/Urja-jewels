@@ -45,3 +45,27 @@ html.lenis, html.lenis body {
 .lenis.lenis-scrolling iframe {
   pointer-events: none;
 }
+
+/* ── Mobile Scroll Optimizations ───────────────────────────────────── */
+@media (pointer: coarse) {
+  html {
+    /* Touch devices scroll beautifully with native momentum mechanics */
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Force GPU composite layer only for dynamic visual containers to prevent paint lag */
+  canvas, .cinematic-content {
+    will-change: transform;
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+  }
+}

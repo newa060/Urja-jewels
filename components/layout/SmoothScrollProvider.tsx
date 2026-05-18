@@ -8,6 +8,7 @@ interface SmoothScrollProviderProps {
 
 /**
  * Initialises Lenis smooth scroll and syncs it with the GSAP ticker.
+ * On mobile devices, uses native scroll.
  * Renders children unchanged — this component exists purely for its side effect.
  */
 export default function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {

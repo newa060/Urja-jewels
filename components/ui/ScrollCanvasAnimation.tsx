@@ -111,13 +111,13 @@ export default function ScrollCanvasAnimation({
   const playMobileAnimation = useCallback(() => {
     if (!ready) return
     if (tweenRef.current) tweenRef.current.kill()
-    const playObj = { frame: 0 }
+    const playObj = { progress: 0 }
     tweenRef.current = gsap.to(playObj, {
-      frame: totalFrames - 1,
+      progress: 1,
       duration: 3.0, // Cinematic 3.0s flow
       ease: 'power1.inOut', // Super smooth deceleration and acceleration curve
       onUpdate: () => {
-        const index = Math.round(playObj.frame)
+        const index = Math.min(totalFrames - 1, Math.floor(playObj.progress * totalFrames))
         currentFrameRef.current = index
         drawFrame(index)
       }
@@ -192,7 +192,7 @@ export default function ScrollCanvasAnimation({
           scrub: 0.6,
           anticipatePin: 1,
           onUpdate: (self) => {
-            const index = Math.round(self.progress * (totalFrames - 1))
+            const index = Math.min(totalFrames - 1, Math.floor(self.progress * totalFrames))
             currentFrameRef.current = index
             drawFrame(index)
           },
@@ -201,7 +201,7 @@ export default function ScrollCanvasAnimation({
     }, wrapperRef)
 
     return () => ctx.revert()
-  }, [ready, isMobile, totalFrames, scrollDistance, drawFrame])
+  }, [ready, isMobile, totalFrames, scrollDistance, drawFrame, playMobileAnimation])
 
   if (portrait) {
     return (

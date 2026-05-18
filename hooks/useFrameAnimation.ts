@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { FrameAnimationState } from '@/lib/constants'
 
 /**
@@ -12,20 +12,36 @@ import type { FrameAnimationState } from '@/lib/constants'
 export function useFrameAnimation(
   totalFrames: number,
   basePath: string,
-  getFileName: (index: number) => string,
-  minimumFrames: number = 15 // Minimum frames needed to show the page
+  getFileName: (index: number) => string
 ): FrameAnimationState {
   const [frames, setFrames] = useState<HTMLImageElement[]>([])
   const [progress, setProgress] = useState(0)
   const [ready, setReady] = useState(false)
 
+  // Use a ref to store the latest getFileName callback to prevent
+  // the preloading effect from re-running due to referential changes.
+  const getFileNameRef = useRef(getFileName)
   useEffect(() => {
+    getFileNameRef.current = getFileName
+  }, [getFileName])
+
+  useEffect(() => {
+    if (totalFrames <= 0) {
+      // Defer state updates to satisfy strict react-hooks/set-state-in-effect lint rules
+      const timer = setTimeout(() => {
+        setProgress(0)
+        setReady(false)
+        setFrames([])
+      }, 0)
+      return () => clearTimeout(timer)
+    }
+
     let loaded = 0
     let isMounted = true
 
     const imgs = Array.from({ length: totalFrames }, (_, i) => {
       const img = new Image()
-      img.src = `${basePath}/${getFileName(i)}`
+      img.src = `${basePath}/${getFileNameRef.current(i)}`
 
       const handleLoad = () => {
         if (!isMounted) return
@@ -56,7 +72,7 @@ export function useFrameAnimation(
       isMounted = false
       clearTimeout(timer)
     }
-  }, [totalFrames, basePath, getFileName, minimumFrames])
+  }, [totalFrames, basePath])
 
   return { frames, progress, ready }
 }

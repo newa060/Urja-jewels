@@ -39,7 +39,8 @@ export default function Navbar() {
 
   // Close mobile drawer on route change
   useEffect(() => {
-    setMobileOpen(false)
+    const timer = setTimeout(() => setMobileOpen(false), 0)
+    return () => clearTimeout(timer)
   }, [pathname])
 
   // Prevent body scroll while mobile drawer is open

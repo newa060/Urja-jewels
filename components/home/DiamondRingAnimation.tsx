@@ -109,28 +109,31 @@ export default function DiamondRingAnimation() {
   const playMobileAnimation = useCallback(() => {
     if (!ready || !sectionRef.current) return
     if (tweenRef.current) tweenRef.current.kill()
-    const playObj = { frame: 0 }
+    const playObj = { progress: 0 }
     tweenRef.current = gsap.to(playObj, {
-      frame: TOTAL_FRAMES - 1,
+      progress: 1,
       duration: 3.0, // Cinematic 3.0s flow
       ease: 'power1.inOut', // Super smooth deceleration and acceleration curve
       onUpdate: () => {
-        const index = Math.round(playObj.frame)
+        const index = Math.min(TOTAL_FRAMES - 1, Math.floor(playObj.progress * TOTAL_FRAMES))
         currentFrameRef.current = index
         drawFrame(index)
 
-        // Subtle Focus Transition based on animation progress
-        const progress = playObj.frame / (TOTAL_FRAMES - 1)
-        let opacity = 1
-        let blur = 0
-        if (progress < 0.1) {
-          opacity = 0.7 + (progress / 0.1) * 0.3
-          blur = 4 * (1 - progress / 0.1)
-        }
-
-        const content = sectionRef.current?.querySelector('.cinematic-content') as HTMLElement
-        if (content) {
-          gsap.set(content, { opacity, filter: `blur(${blur}px)` })
+        // Subtle cinematic lens focus on the canvas during autoplay
+        const progress = playObj.progress
+        const canvas = canvasRef.current
+        if (canvas) {
+          let canvasBlur = 0
+          let canvasOpacity = 1
+          if (progress < 0.15) {
+            const ratio = progress / 0.15
+            canvasBlur = 3.5 * (1 - ratio)
+            canvasOpacity = 0.8 + 0.2 * ratio
+          }
+          gsap.set(canvas, { 
+            filter: canvasBlur > 0 ? `blur(${canvasBlur}px)` : 'none',
+            opacity: canvasOpacity
+          })
         }
       }
     })
@@ -143,6 +146,38 @@ export default function DiamondRingAnimation() {
     const ctx = gsap.context(() => {
       drawFrame(0)
       ScrollTrigger.refresh()
+
+      // ── Premium Cinematic Entrance Animation ──
+      const entranceTl = gsap.timeline()
+      
+      // Smooth fade & slide up for text elements
+      entranceTl.fromTo(
+        sectionRef.current?.querySelectorAll('.parallax-text > *') || [],
+        { opacity: 0, y: 35 },
+        { 
+          opacity: 1, 
+          y: 0, 
+          duration: 1.4, 
+          ease: 'power3.out', 
+          stagger: 0.12 
+        }
+      )
+
+      // Soft cinematic lens pull and fade/zoom in for the canvas
+      if (canvasRef.current) {
+        entranceTl.fromTo(
+          canvasRef.current,
+          { opacity: 0, scale: 0.94, filter: 'blur(6px)' },
+          { 
+            opacity: 1, 
+            scale: 1, 
+            filter: 'blur(0px)', 
+            duration: 1.8, 
+            ease: 'power2.out' 
+          },
+          '-=1.4' // overlay beautifully with the text reveal
+        )
+      }
 
       if (isMobile) {
         // Mobile: No pinning, no scroll-scrub. Auto-play when section enters or re-enters viewport.
@@ -162,21 +197,24 @@ export default function DiamondRingAnimation() {
           scrub: 0.4,
           anticipatePin: 1,
           onUpdate: (self) => {
-            const index = Math.round(self.progress * (TOTAL_FRAMES - 1))
+            const index = Math.min(TOTAL_FRAMES - 1, Math.floor(self.progress * TOTAL_FRAMES))
             currentFrameRef.current = index
             drawFrame(index)
 
-            // Subtle Focus Transition based on scroll progress
-            let opacity = 1
-            let blur = 0
-            if (self.progress < 0.05) {
-              opacity = 0.7 + (self.progress / 0.05) * 0.3
-              blur = 4 * (1 - self.progress / 0.05)
-            }
-
-            const content = sectionRef.current?.querySelector('.cinematic-content') as HTMLElement
-            if (content) {
-              gsap.set(content, { opacity, filter: `blur(${blur}px)` })
+            // Subtle cinematic lens focus on the canvas at the very start of pinning/scrolling
+            const canvas = canvasRef.current
+            if (canvas) {
+              let canvasBlur = 0
+              let canvasOpacity = 1
+              if (self.progress < 0.12) {
+                const ratio = self.progress / 0.12
+                canvasBlur = 3.5 * (1 - ratio)
+                canvasOpacity = 0.8 + 0.2 * ratio
+              }
+              gsap.set(canvas, { 
+                filter: canvasBlur > 0 ? `blur(${canvasBlur}px)` : 'none',
+                opacity: canvasOpacity
+              })
             }
 
             const textBlock = sectionRef.current?.querySelector('.parallax-text') as HTMLElement
@@ -191,7 +229,7 @@ export default function DiamondRingAnimation() {
     }, sectionRef)
 
     return () => ctx.revert() // Cleanly removes all pins and animations
-  }, [ready, isMobile, TOTAL_FRAMES, drawFrame])
+  }, [ready, isMobile, TOTAL_FRAMES, drawFrame, playMobileAnimation])
 
   return (
     <section
@@ -202,8 +240,6 @@ export default function DiamondRingAnimation() {
       <div 
         className="cinematic-content w-full h-full"
         style={{ 
-          opacity: 0.7, 
-          filter: 'blur(4px)',
           willChange: 'transform, opacity', 
           backfaceVisibility: 'hidden' 
         }}

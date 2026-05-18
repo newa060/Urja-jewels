@@ -5,6 +5,7 @@ import { unstable_cache } from 'next/cache'
 export type SiteContent = {
   id: string
   key: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   content: any
 }
 
@@ -37,6 +38,7 @@ export const getSiteContent = (key: string) => unstable_cache(
   { revalidate: 3600, tags: ['site-content'] }
 )()
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function updateSiteContent(key: string, content: any) {
   try {
     const supabase = await createClient()
