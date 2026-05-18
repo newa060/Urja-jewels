@@ -7,7 +7,17 @@ import { useFrameAnimation } from '@/hooks/useFrameAnimation'
 
 gsap.registerPlugin(ScrollTrigger)
 
-export default function ProductShowcaseAnimation() {
+interface ProductShowcaseAnimationProps {
+  onLoadProgress?: (progress: number) => void
+  onLoadComplete?: () => void
+  isPageReady?: boolean
+}
+
+export default function ProductShowcaseAnimation({
+  onLoadProgress,
+  onLoadComplete,
+  isPageReady = true,
+}: ProductShowcaseAnimationProps = {}) {
   const sectionRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const currentFrameRef = useRef(0)
@@ -44,11 +54,19 @@ export default function ProductShowcaseAnimation() {
     return `Gold_dome_ring_on_stone_202605130855_${String(index).padStart(3, '0')}.webp`
   }, [])
 
-  const { frames, ready } = useFrameAnimation(
+  const { frames, progress, ready } = useFrameAnimation(
     effectiveTotalFrames,
     '/frames/Gold_dome_ring',
     customGetFileName
   )
+
+  useEffect(() => {
+    if (onLoadProgress) onLoadProgress(progress)
+  }, [progress, onLoadProgress])
+
+  useEffect(() => {
+    if (ready && onLoadComplete) onLoadComplete()
+  }, [ready, onLoadComplete])
 
   /* ── Draw helpers ─────────────────────────────────────────────────── */
   const drawFrame = useCallback(
@@ -93,12 +111,11 @@ export default function ProductShowcaseAnimation() {
       prevIsMobileRef.current = isMobile
 
       if (isMobile) {
-        // Taller portrait card for mobile, filling more space
-        const targetWidth = window.innerWidth * 0.9;
-        const targetHeight = window.innerHeight * 0.55;
-        const w = Math.min(targetWidth, targetHeight * 0.75); // ~3:4 aspect ratio
-        canvas.width = Math.round(w);
-        canvas.height = Math.round(w / 0.75);
+        // High quality pixel buffer: fill the screen width scaled by device pixel ratio for crystal clear cover rendering
+        const dpr = window.devicePixelRatio || 1;
+        const targetWidth = window.innerWidth;
+        canvas.width = Math.round(targetWidth * dpr);
+        canvas.height = Math.round((targetWidth / 0.75) * dpr);
       } else {
         // Portrait card: 52% of viewport height wide, 85% tall → ~3:5 ratio
         canvas.height = Math.round(window.innerHeight * 0.85)
@@ -149,7 +166,7 @@ export default function ProductShowcaseAnimation() {
 
   /* ── GSAP scroll animation ────────────────────────────────────────── */
   useEffect(() => {
-    if (!ready || !sectionRef.current) return
+    if (!ready || !isPageReady || !sectionRef.current) return
 
     // Scoped GSAP context to prevent 'removeChild' errors on unmount/reload
     const ctx = gsap.context(() => {
@@ -238,7 +255,7 @@ export default function ProductShowcaseAnimation() {
     }, sectionRef)
 
     return () => ctx.revert() // Cleanly removes all pins and animations
-  }, [ready, isMobile, TOTAL_FRAMES, drawFrame, playMobileAnimation])
+  }, [ready, isMobile, TOTAL_FRAMES, drawFrame, playMobileAnimation, isPageReady])
 
   return (
     <section
@@ -311,12 +328,14 @@ export default function ProductShowcaseAnimation() {
             <div
               style={{
                 position: 'relative',
-                height: '100%',
+                height: isMobile ? 'auto' : '100%',
                 width: '100%',
-                maxWidth: '95vw',
+                aspectRatio: isMobile ? '3/4' : 'auto',
+                maxWidth: isMobile ? '100%' : '95vw',
                 display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
+                alignItems: isMobile ? 'flex-start' : 'center',
+                justifyContent: 'center',
+                overflow: 'hidden'
               }}
             >
               <canvas
@@ -324,11 +343,12 @@ export default function ProductShowcaseAnimation() {
                 aria-label="Gold Dome Ring — Cinematic 360° View"
                 style={{
                   display: 'block',
+                  width: isMobile ? '100%' : 'auto',
+                  height: isMobile ? '100%' : 'auto',
                   maxWidth: '100%',
                   maxHeight: '100%',
-                  width: 'auto',
-                  height: 'auto',
-                  objectFit: 'contain',
+                  objectFit: isMobile ? 'cover' : 'contain',
+                  objectPosition: isMobile ? 'top' : 'center',
                   willChange: 'transform',
                   transform: isMobile ? 'translate3d(0, 0, 0)' : 'none',
                   backfaceVisibility: 'hidden'

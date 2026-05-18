@@ -7,9 +7,10 @@ import HeroOverlay from './HeroOverlay'
 interface HeroCanvasProps {
   onLoadProgress: (progress: number) => void
   onLoadComplete: () => void
+  isPageReady?: boolean
 }
 
-export default function HeroCanvas({ onLoadProgress, onLoadComplete }: HeroCanvasProps) {
+export default function HeroCanvas({ onLoadProgress, onLoadComplete, isPageReady = true }: HeroCanvasProps) {
   const getFileName = useCallback((index: number) => {
     return `frame_${String(index).padStart(3, '0')}_delay-0.066s.webp`
   }, [])
@@ -23,6 +24,7 @@ export default function HeroCanvas({ onLoadProgress, onLoadComplete }: HeroCanva
       onLoadProgress={onLoadProgress}
       onLoadComplete={onLoadComplete}
       ariaLabel="Cinematic jewelry showcase animation"
+      isPageReady={isPageReady}
     >
       <HeroOverlay />
     </ScrollCanvasAnimation>

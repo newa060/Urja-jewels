@@ -7,7 +7,17 @@ import { useFrameAnimation } from '@/hooks/useFrameAnimation'
 
 gsap.registerPlugin(ScrollTrigger)
 
-export default function DiamondRingAnimation() {
+interface DiamondRingAnimationProps {
+  onLoadProgress?: (progress: number) => void
+  onLoadComplete?: () => void
+  isPageReady?: boolean
+}
+
+export default function DiamondRingAnimation({
+  onLoadProgress,
+  onLoadComplete,
+  isPageReady = true,
+}: DiamondRingAnimationProps = {}) {
   const sectionRef = useRef<HTMLDivElement>(null)
   const canvasRef  = useRef<HTMLCanvasElement>(null)
   const currentFrameRef = useRef(0)
@@ -44,11 +54,19 @@ export default function DiamondRingAnimation() {
     return `Yellow_gold_diamond_engagement_ring_202605130931_${String(index).padStart(3, '0')}.webp`
   }, [])
 
-  const { frames, ready } = useFrameAnimation(
+  const { frames, progress, ready } = useFrameAnimation(
     effectiveTotalFrames,
     '/frames/Yellow_gold_diamond',
     customGetFileName
   )
+
+  useEffect(() => {
+    if (onLoadProgress) onLoadProgress(progress)
+  }, [progress, onLoadProgress])
+
+  useEffect(() => {
+    if (ready && onLoadComplete) onLoadComplete()
+  }, [ready, onLoadComplete])
 
   /* ── Draw ──────────────────────────────────────────────────────────── */
   const drawFrame = useCallback((index: number) => {
@@ -89,12 +107,11 @@ export default function DiamondRingAnimation() {
       prevIsMobileRef.current = isMobile
 
       if (isMobile) {
-        // Taller 3:4 portrait canvas for mobile to feel large and filled, matching ProductShowcase
-        const targetWidth = window.innerWidth * 0.9
-        const targetHeight = window.innerHeight * 0.55
-        const w = Math.min(targetWidth, targetHeight * 0.75) // ~3:4 aspect ratio
-        canvas.width = Math.round(w)
-        canvas.height = Math.round(w / 0.75)
+        // High quality pixel buffer: fill the screen width scaled by device pixel ratio for crystal clear cover rendering
+        const dpr = window.devicePixelRatio || 1
+        const targetWidth = window.innerWidth
+        canvas.width = Math.round(targetWidth * dpr)
+        canvas.height = Math.round((targetWidth / 0.75) * dpr)
       } else {
         canvas.height = Math.round(window.innerHeight * 0.85)
         canvas.width  = Math.round(canvas.height * 0.70)
@@ -143,7 +160,7 @@ export default function DiamondRingAnimation() {
   }, [ready, TOTAL_FRAMES, drawFrame])
 
   useEffect(() => {
-    if (!ready || !sectionRef.current) return
+    if (!ready || !isPageReady || !sectionRef.current) return
 
     // Scoped GSAP context to prevent 'removeChild' errors on unmount/reload
     const ctx = gsap.context(() => {
@@ -232,7 +249,7 @@ export default function DiamondRingAnimation() {
     }, sectionRef)
 
     return () => ctx.revert() // Cleanly removes all pins and animations
-  }, [ready, isMobile, TOTAL_FRAMES, drawFrame, playMobileAnimation])
+  }, [ready, isMobile, TOTAL_FRAMES, drawFrame, playMobileAnimation, isPageReady])
 
   return (
     <section
@@ -263,12 +280,14 @@ export default function DiamondRingAnimation() {
             <div
               style={{
                 position: 'relative',
-                height: '100%',
+                height: isMobile ? 'auto' : '100%',
                 width: '100%',
-                maxWidth: '85vw',
+                aspectRatio: isMobile ? '3/4' : 'auto',
+                maxWidth: isMobile ? '100%' : '85vw',
                 display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
+                alignItems: isMobile ? 'flex-start' : 'center',
+                justifyContent: 'center',
+                overflow: 'hidden'
               }}
             >
               <canvas
@@ -276,11 +295,12 @@ export default function DiamondRingAnimation() {
                 aria-label="Diamond Engagement Ring — Cinematic View"
                 style={{ 
                   display: 'block', 
+                  width: isMobile ? '100%' : 'auto',
+                  height: isMobile ? '100%' : 'auto',
                   maxWidth: '100%',
                   maxHeight: '100%',
-                  width: 'auto',
-                  height: 'auto',
-                  objectFit: 'contain',
+                  objectFit: isMobile ? 'cover' : 'contain',
+                  objectPosition: isMobile ? 'top' : 'center',
                   willChange: 'transform',
                   transform: isMobile ? 'translate3d(0, 0, 0)' : 'none',
                   backfaceVisibility: 'hidden'

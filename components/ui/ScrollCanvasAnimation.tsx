@@ -18,6 +18,7 @@ interface ScrollCanvasAnimationProps {
   ariaLabel?: string
   portrait?: boolean // renders canvas in a centered portrait card
   children?: React.ReactNode
+  isPageReady?: boolean // coordinated loading state
 }
 
 export default function ScrollCanvasAnimation({
@@ -31,6 +32,7 @@ export default function ScrollCanvasAnimation({
   ariaLabel = 'Scroll animation',
   portrait = false,
   children,
+  isPageReady = true,
 }: ScrollCanvasAnimationProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const wrapperRef = useRef<HTMLDivElement>(null)
@@ -168,7 +170,7 @@ export default function ScrollCanvasAnimation({
   }, [drawFrame, portrait])
 
   useEffect(() => {
-    if (!ready || !wrapperRef.current) return
+    if (!ready || !isPageReady || !wrapperRef.current) return
 
     // Scoped GSAP context to prevent 'removeChild' errors
     const ctx = gsap.context(() => {
@@ -201,7 +203,7 @@ export default function ScrollCanvasAnimation({
     }, wrapperRef)
 
     return () => ctx.revert()
-  }, [ready, isMobile, totalFrames, scrollDistance, drawFrame, playMobileAnimation])
+  }, [ready, isMobile, totalFrames, scrollDistance, drawFrame, playMobileAnimation, isPageReady])
 
   if (portrait) {
     return (
