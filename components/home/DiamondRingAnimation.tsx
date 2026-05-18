@@ -12,6 +12,7 @@ export default function DiamondRingAnimation() {
   const canvasRef  = useRef<HTMLCanvasElement>(null)
   const currentFrameRef = useRef(0)
   const prevWidthRef = useRef(0)
+  const prevIsMobileRef = useRef<boolean | null>(null)
   const TOTAL_FRAMES = 82
 
   // Mobile / Client Detection
@@ -78,12 +79,14 @@ export default function DiamondRingAnimation() {
 
     const setSize = () => {
       const currentWidth = window.innerWidth
+      const isMobileChanged = prevIsMobileRef.current !== isMobile
       // On mobile, height changes due to URL bar show/hide. Only trigger a full canvas resize if the width actually changes.
-      if (prevWidthRef.current && prevWidthRef.current === currentWidth) {
+      if (!isMobileChanged && prevWidthRef.current && prevWidthRef.current === currentWidth) {
         drawFrame(currentFrameRef.current)
         return
       }
       prevWidthRef.current = currentWidth
+      prevIsMobileRef.current = isMobile
 
       if (isMobile) {
         // Taller 3:4 portrait canvas for mobile to feel large and filled, matching ProductShowcase
