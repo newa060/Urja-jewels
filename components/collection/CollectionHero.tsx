@@ -24,7 +24,7 @@ export default function CollectionHero({ title, subtitle }: CollectionHeroProps)
   return (
     <section className="bg-ivory pt-32 pb-16 px-8 text-center">
       <div className="max-w-6xl mx-auto text-left mb-4">
-        <MobileBackButton />
+        <MobileBackButton href="/" />
       </div>
       <motion.div
         variants={fadeUp}

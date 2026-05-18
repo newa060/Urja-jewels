@@ -3,15 +3,27 @@
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 
-export default function MobileBackButton() {
+interface MobileBackButtonProps {
+  href?: string
+}
+
+export default function MobileBackButton({ href }: MobileBackButtonProps) {
   const router = useRouter()
+
+  const handleBack = () => {
+    if (href) {
+      router.push(href)
+    } else {
+      router.back()
+    }
+  }
 
   return (
     <motion.button
       initial={{ opacity: 0, x: -10 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.5, delay: 0.2 }}
-      onClick={() => router.back()}
+      onClick={handleBack}
       className="md:hidden flex items-center space-x-2 text-stone hover:text-obsidian transition-colors mb-6 font-body text-sm uppercase tracking-widest"
     >
       <svg

@@ -8,7 +8,7 @@ export default function ContactPage() {
     <PageTransition>
       <div className="bg-ivory min-h-screen pt-24 pb-12">
         <section className="px-8 py-16 max-w-6xl mx-auto">
-          <MobileBackButton />
+          <MobileBackButton href="/" />
           <SectionTitle
             eyebrow="Contact Us"
             heading="Inquiries & Appointments"
